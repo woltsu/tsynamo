@@ -83,7 +83,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
 
     const item = await this.#props.ddbClient.send(command);
 
-    return (item.Item as O) ?? undefined;
+    return (item.Item as StripKeys<O>) ?? undefined;
   };
 }
 

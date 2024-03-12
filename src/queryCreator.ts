@@ -1,5 +1,5 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { GetQueryBuilder } from "./queryBuilders/getQueryBuilder";
+import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
 
 export class QueryCreator<DDB> {
   readonly #props: QueryCreatorProps;
