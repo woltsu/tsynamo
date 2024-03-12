@@ -1,7 +1,7 @@
 {
   "name": "tsynamo",
   "author": "woltsu",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Typed query builder for DynamoDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.529.1",
     "@aws-sdk/lib-dynamodb": "^3.529.1",
-    "@tsconfig/node18": "^18.2.2",
+    "@tsconfig/node20": "^20.1.2",
     "@types/node": "^20.11.26",
     "tsup": "^8.0.2",
     "typescript": "^5.4.2",
