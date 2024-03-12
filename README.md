@@ -9,4 +9,38 @@ Usable with AWS SDK v3 `DynamoDBDocumentClient`.
 
 ![](https://github.com/woltsu/tsynamo/blob/main/assets/demo.gif)
 
+## Installation
+
+Available in [NPM](https://www.npmjs.com/package/tsynamo).
+
+```bash
+npm i tsynamo
+pnpm install tsynamo
+yarn add tsynamo
+```
+
+## Usage
+
+First, create the types for your DynamoDB tables:
+
+```ts
+import { PartitionKey, SortKey } from "tsynamo";
+
+export interface DDB {
+  UserEvents: {
+    userId: PartitionKey<string>;
+    eventId: SortKey<number>;
+    eventType: string;
+  };
+}
+```
+
+and then, pass that to the Tsynamo instance:
+
+```ts
+const tsynamoClient = new Tsynamo<DDB>({
+  ddbClient: dynamoDbDocumentClient,
+});
+```
+
 
