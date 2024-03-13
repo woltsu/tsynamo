@@ -105,6 +105,7 @@ export class QueryQueryBuilder<
     this.#props = props;
   }
 
+  // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.KeyConditionExpressions.html
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
     key: Key,
     operation: ComparisonOperator,
@@ -124,6 +125,7 @@ export class QueryQueryBuilder<
     });
   }
 
+  // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: ComparisonOperator,
@@ -310,6 +312,8 @@ export class QueryQueryBuilder<
 
       if (expr.kind === "OperationNode") {
         const attributeValue = `:filterExpressionValue${i + offset}`;
+        // TODO: Instead of expr.key, use AttributeNames here to avoid
+        // problems with using reserved words.
         res += `${expr.key} ${expr.operation} ${attributeValue}`;
         filterExpressionAttributeValues.set(attributeValue, expr.value);
       } else {
@@ -335,9 +339,12 @@ export class QueryQueryBuilder<
       }
 
       const attributeValue = `:keyConditionValue${i}`;
+      // TODO: Instead of expr.key, use AttributeNames here to avoid
+      // problems with using reserved words.
       res += `${keyCondition.key} ${keyCondition.operation} ${attributeValue}`;
       keyConditionAttributeValues.set(attributeValue, keyCondition.value);
     });
+
     return res;
   };
 
