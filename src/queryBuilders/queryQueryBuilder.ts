@@ -2,7 +2,12 @@ import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import { ComparisonOperator } from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
-import { PickAllKeys, PickNonKeys, StripKeys } from "../typeHelpers";
+import {
+  PickAllKeys,
+  PickNonKeys,
+  SelectAttributes,
+  StripKeys,
+} from "../typeHelpers";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
@@ -38,6 +43,14 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  scanIndexForward(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  consistentRead(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  attributes<A extends ReadonlyArray<keyof DDB[Table]> & string[]>(
+    attributes: A
+  ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
   _getNode(): QueryNode;
 }
@@ -79,9 +92,6 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
 /**
  * @todo support IndexName
  * @todo support ExclusiveStartKey
- * @todo support ConsistentRead
- * @todo support AttributesToGet
- * @todo support ScanIndexForward
  */
 export class QueryQueryBuilder<
   DDB,
@@ -243,6 +253,49 @@ export class QueryQueryBuilder<
     });
   }
 
+  scanIndexForward(
+    enabled: boolean
+  ): QueryQueryBuilderInterface<DDB, Table, O> {
+    return new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        scanIndexForward: {
+          kind: "ScanIndexForwardNode",
+          enabled,
+        },
+      },
+    });
+  }
+
+  consistentRead(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O> {
+    return new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        consistentRead: {
+          kind: "ConsistentReadNode",
+          enabled,
+        },
+      },
+    });
+  }
+
+  attributes<A extends readonly (keyof DDB[Table])[] & string[]>(
+    attributes: A
+  ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>> {
+    return new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        attributes: {
+          kind: "AttributesNode",
+          attributes,
+        },
+      },
+    });
+  }
+
   compileFilterExpression = (
     expression: FilterExpressionNode,
     filterExpressionAttributeValues: Map<string, unknown>
@@ -312,6 +365,8 @@ export class QueryQueryBuilder<
         ...Object.fromEntries(keyConditionAttributeValues),
         ...Object.fromEntries(filterExpressionAttributeValues),
       },
+      ScanIndexForward: this.#props.node.scanIndexForward?.enabled,
+      ConsistentRead: this.#props.node.consistentRead?.enabled,
     });
 
     const result = await this.#props.ddbClient.send(command);
