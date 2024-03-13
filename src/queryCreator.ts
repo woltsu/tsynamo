@@ -1,5 +1,6 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
+import { QueryQueryBuilder } from "./queryBuilders/queryQueryBuilder";
 
 export class QueryCreator<DDB> {
   readonly #props: QueryCreatorProps;
@@ -23,6 +24,21 @@ export class QueryCreator<DDB> {
           kind: "TableNode",
           table,
         },
+      },
+      ddbClient: this.#props.ddbClient,
+    });
+  }
+
+  query<Table extends keyof DDB & string>(table: Table) {
+    return new QueryQueryBuilder<DDB, Table, DDB[Table]>({
+      node: {
+        kind: "QueryNode",
+        table: {
+          kind: "TableNode",
+          table,
+        },
+        keyConditions: [],
+        filterExpressions: [],
       },
       ddbClient: this.#props.ddbClient,
     });

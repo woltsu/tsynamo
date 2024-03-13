@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { PartitionKey, SortKey } from "./ddbTypes";
 import { Tsynamo } from "./index";
 
@@ -21,21 +21,45 @@ describe("tsynamo", () => {
     mockSend.mockReturnValue(Promise.resolve({}));
   });
 
-  it("sends a basic get command", async () => {
-    const tsynamoClient = new Tsynamo<DDB>({
-      ddbClient,
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("getItemQueryBuilder", () => {
+    it("sends a basic get command", async () => {
+      const tsynamoClient = new Tsynamo<DDB>({
+        ddbClient,
+      });
+
+      await tsynamoClient
+        .getItemFrom("myTable")
+        .keys({
+          userId: "123",
+          timestamp: "123",
+        })
+        .consistentRead(true)
+        .attributes(["somethingElse"])
+        .execute();
+
+      expect(mockSend).toMatchSnapshot();
     });
+  });
 
-    await tsynamoClient
-      .getItemFrom("myTable")
-      .keys({
-        userId: "123",
-        timestamp: "123",
-      })
-      .consistentRead(true)
-      .attributes(["somethingElse"])
-      .execute();
+  describe("queryQueryBuilder", () => {
+    it("sends a basic query command", async () => {
+      const tsynamoClient = new Tsynamo<DDB>({
+        ddbClient,
+      });
 
-    expect(mockSend).toMatchSnapshot();
+      await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "3")
+        .keyCondition("timestamp", "<=", "2020-01-01")
+        .filterExpression("somethingElse", "<", "2")
+        .orFilterExpression("somethingElse", ">", "10")
+        .execute();
+
+      expect(mockSend).toMatchSnapshot();
+    });
   });
 });

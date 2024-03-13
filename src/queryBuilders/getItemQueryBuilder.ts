@@ -78,6 +78,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
       TableName: this.#props.node.table?.table,
       Key: this.#props.node.keys?.keys,
       ConsistentRead: this.#props.node.consistentRead?.enabled,
+      // TODO: Use ProjectionExpression instead
       AttributesToGet: this.#props.node.attributes?.attributes,
     });
 

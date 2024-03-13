@@ -5,7 +5,7 @@ import { TableNode } from "./tableNode";
 
 export type GetNode = {
   readonly kind: "GetNode";
-  readonly table?: TableNode;
+  readonly table: TableNode;
   readonly keys?: KeysNode;
   readonly consistentRead?: ConsistentReadNode;
   readonly attributes?: AttributesNode;

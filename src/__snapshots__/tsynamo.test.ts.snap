@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`tsynamo > sends a basic get command 1`] = `
+exports[`tsynamo > getItemQueryBuilder > sends a basic get command 1`] = `
 [MockFunction spy] {
   "calls": [
     [
@@ -62,6 +62,95 @@ exports[`tsynamo > sends a basic get command 1`] = `
         },
         "outputKeyNodes": {
           "Item": {},
+        },
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {},
+    },
+  ],
+}
+`;
+
+exports[`tsynamo > queryQueryBuilder > sends a basic query command 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      QueryCommand {
+        "clientCommand": QueryCommand {
+          "deserialize": [Function],
+          "input": {
+            "ExpressionAttributeValues": {
+              "filterExpressionValue0": "2",
+              "filterExpressionValue1": "10",
+              "keyConditionValue0": "3",
+              "keyConditionValue1": "2020-01-01",
+            },
+            "FilterExpression": "somethingElse < :filterExpressionValue0 OR somethingElse > :filterExpressionValue1",
+            "KeyConditionExpression": "userId = :keyConditionValue0 AND timestamp <= :keyConditionValue1",
+            "TableName": "myTable",
+          },
+          "middlewareStack": {
+            "add": [Function],
+            "addRelativeTo": [Function],
+            "applyToStack": [Function],
+            "clone": [Function],
+            "concat": [Function],
+            "identify": [Function],
+            "identifyOnResolve": [Function],
+            "remove": [Function],
+            "removeByTag": [Function],
+            "resolve": [Function],
+            "use": [Function],
+          },
+          "serialize": [Function],
+        },
+        "input": {
+          "ExpressionAttributeValues": {
+            "filterExpressionValue0": "2",
+            "filterExpressionValue1": "10",
+            "keyConditionValue0": "3",
+            "keyConditionValue1": "2020-01-01",
+          },
+          "FilterExpression": "somethingElse < :filterExpressionValue0 OR somethingElse > :filterExpressionValue1",
+          "KeyConditionExpression": "userId = :keyConditionValue0 AND timestamp <= :keyConditionValue1",
+          "TableName": "myTable",
+        },
+        "inputKeyNodes": {
+          "ExclusiveStartKey": {},
+          "ExpressionAttributeValues": {},
+          "KeyConditions": {
+            "*": {
+              "AttributeValueList": [],
+            },
+          },
+          "QueryFilter": {
+            "*": {
+              "AttributeValueList": [],
+            },
+          },
+        },
+        "middlewareStack": {
+          "add": [Function],
+          "addRelativeTo": [Function],
+          "applyToStack": [Function],
+          "clone": [Function],
+          "concat": [Function],
+          "identify": [Function],
+          "identifyOnResolve": [Function],
+          "remove": [Function],
+          "removeByTag": [Function],
+          "resolve": [Function],
+          "use": [Function],
+        },
+        "outputKeyNodes": {
+          "Items": {
+            "*": {},
+          },
+          "LastEvaluatedKey": {},
         },
       },
     ],

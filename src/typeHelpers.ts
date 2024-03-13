@@ -24,6 +24,14 @@ export type PickSk<Table> = {
   >;
 };
 
+export type PickAllKeys<Table> = PickPk<Table> & PickSk<Table>;
+
+export type PickNonKeys<Table> = {
+  [P in keyof Table as Table[P] extends { _SK: true } | { _PK: true }
+    ? never
+    : P]: Table[P];
+};
+
 /**
  * Returns the properties of a table that are sort keys as required.
  *
@@ -42,9 +50,11 @@ export type PickSkRequired<Table> = {
  * @see PartitionKey
  * @see SortKey
  */
-export type StripKeys<Table> = {
-  [P in keyof Table]: Omit<Table[P], "_SK" | "_PK">;
-};
+export type StripKeys<T> = T extends { _PK: true }
+  ? Omit<T, "_PK">
+  : T extends { _SK: true }
+  ? Omit<T, "_SK">
+  : T;
 
 /**
  * Returns a subset of a table's properties.
