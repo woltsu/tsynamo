@@ -1,4 +1,5 @@
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import { ComparisonOperator } from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
 import { PickAllKeys, PickNonKeys, StripKeys } from "../typeHelpers";
@@ -24,12 +25,59 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  andNestedFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orNestedFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  _getNode(): QueryNode;
+}
+
+/**
+ * When we use a nested builder, this type is used to remove
+ * all the extra functions of the builder for DX improvement.
+ */
+export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+  DDB,
+  Table extends keyof DDB,
+  O
+> {
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    key: Key,
+    operation: ComparisonOperator,
+    val: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    key: Key,
+    operation: ComparisonOperator,
+    val: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  andNestedFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orNestedFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 }
 
 /**
  * @todo support IndexName
- * @todo support parentheses for FilterExpression
  * @todo support ExclusiveStartKey
  * @todo support ConsistentRead
  * @todo support AttributesToGet
@@ -69,19 +117,22 @@ export class QueryQueryBuilder<
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: ComparisonOperator,
-    val: StripKeys<DDB[Table][Key]>
+    value: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     return new QueryQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
         ...this.#props.node,
-        filterExpressions: this.#props.node.filterExpressions.concat({
-          kind: "FilterExpressionNode",
-          key,
-          operation,
-          value: val,
-          joinType: "AND",
-        }),
+        filterExpression: {
+          ...this.#props.node.filterExpression,
+          expressions: this.#props.node.filterExpression.expressions.concat({
+            kind: "OperationNode",
+            joinType: "AND",
+            key,
+            operation,
+            value,
+          }),
+        },
       },
     });
   }
@@ -89,19 +140,22 @@ export class QueryQueryBuilder<
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: ComparisonOperator,
-    val: StripKeys<DDB[Table][Key]>
+    value: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     return new QueryQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
         ...this.#props.node,
-        filterExpressions: this.#props.node.filterExpressions.concat({
-          kind: "FilterExpressionNode",
-          key,
-          operation,
-          value: val,
-          joinType: "OR",
-        }),
+        filterExpression: {
+          ...this.#props.node.filterExpression,
+          expressions: this.#props.node.filterExpression.expressions.concat({
+            kind: "OperationNode",
+            joinType: "OR",
+            key,
+            operation,
+            value,
+          }),
+        },
       },
     });
   }
@@ -119,39 +173,145 @@ export class QueryQueryBuilder<
     });
   }
 
+  _getNode() {
+    return this.#props.node;
+  }
+
+  andNestedFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterface<DDB, Table, O>
+    ) => QueryQueryBuilderInterface<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O> {
+    const qb = new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        filterExpression: {
+          expressions: [],
+          kind: "FilterExpressionNode",
+          joinType: "AND",
+        },
+      },
+    });
+
+    const result = builder(qb);
+
+    return new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        filterExpression: {
+          ...this.#props.node.filterExpression,
+          expressions: this.#props.node.filterExpression.expressions.concat(
+            result._getNode().filterExpression
+          ),
+        },
+      },
+    });
+  }
+
+  orNestedFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterface<DDB, Table, O>
+    ) => QueryQueryBuilderInterface<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O> {
+    const qb = new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        filterExpression: {
+          expressions: [],
+          kind: "FilterExpressionNode",
+          joinType: "OR",
+        },
+      },
+    });
+
+    const result = builder(qb);
+
+    return new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        filterExpression: {
+          ...this.#props.node.filterExpression,
+          expressions: this.#props.node.filterExpression.expressions.concat(
+            result._getNode().filterExpression
+          ),
+        },
+      },
+    });
+  }
+
+  compileFilterExpression = (
+    expression: FilterExpressionNode,
+    filterExpressionAttributeValues: Map<string, unknown>
+  ) => {
+    let res = "";
+    const offset = filterExpressionAttributeValues.size;
+
+    expression.expressions.forEach((expr, i) => {
+      if (i !== 0) {
+        res += ` ${expr.joinType} `;
+      }
+
+      if (expr.kind === "OperationNode") {
+        const attributeValue = `:filterExpressionValue${i + offset}`;
+        res += `${expr.key} ${expr.operation} ${attributeValue}`;
+        filterExpressionAttributeValues.set(attributeValue, expr.value);
+      } else {
+        res += "(";
+        res += this.compileFilterExpression(
+          expr,
+          filterExpressionAttributeValues
+        );
+        res += ")";
+      }
+    });
+
+    return res;
+  };
+
+  compileKeyConditionExpression = (
+    keyConditionAttributeValues: Map<string, unknown>
+  ) => {
+    let res = "";
+    this.#props.node.keyConditions.forEach((keyCondition, i) => {
+      if (i !== 0) {
+        res += " AND ";
+      }
+
+      const attributeValue = `:keyConditionValue${i}`;
+      res += `${keyCondition.key} ${keyCondition.operation} ${attributeValue}`;
+      keyConditionAttributeValues.set(attributeValue, keyCondition.value);
+    });
+    return res;
+  };
+
   execute = async (): Promise<StripKeys<O>[] | undefined> => {
-    const keyConditions = this.#props.node.keyConditions;
-    const filterExpressions = this.#props.node.filterExpressions;
-    const compiledKeyConditions: string[] = [];
-    const compiledFilterExpressions: string[] = [];
-    const ExpressionAttributeValues: Record<string, unknown> = {};
+    const keyConditionAttributeValues = new Map();
+    const filterExpressionAttributeValues = new Map();
 
-    keyConditions.forEach((keyCondition, i) => {
-      compiledKeyConditions.push(
-        `${keyCondition.key} ${keyCondition.operation} :keyConditionValue${i}`
-      );
+    const compiledKeyConditionExpression = this.compileKeyConditionExpression(
+      keyConditionAttributeValues
+    );
 
-      ExpressionAttributeValues[`keyConditionValue${i}`] = keyCondition.value;
-    });
-
-    filterExpressions.forEach((filterExpression, i) => {
-      compiledFilterExpressions.push(
-        `${i !== 0 ? filterExpression.joinType + " " : ""}${
-          filterExpression.key
-        } ${filterExpression.operation} :filterExpressionValue${i}`
-      );
-
-      ExpressionAttributeValues[`filterExpressionValue${i}`] =
-        filterExpression.value;
-    });
+    const compiledFilterExpression = this.compileFilterExpression(
+      this.#props.node.filterExpression,
+      filterExpressionAttributeValues
+    );
 
     const command = new QueryCommand({
       TableName: this.#props.node.table.table,
-      KeyConditionExpression: compiledKeyConditions.join(" AND "),
-      // TODO: How to handle parentheses?
-      FilterExpression: compiledFilterExpressions.join(" "),
+      KeyConditionExpression: compiledKeyConditionExpression,
+      FilterExpression: compiledFilterExpression
+        ? compiledFilterExpression
+        : undefined,
       Limit: this.#props.node.limit?.limit,
-      ExpressionAttributeValues,
+      ExpressionAttributeValues: {
+        ...Object.fromEntries(keyConditionAttributeValues),
+        ...Object.fromEntries(filterExpressionAttributeValues),
+      },
     });
 
     const result = await this.#props.ddbClient.send(command);

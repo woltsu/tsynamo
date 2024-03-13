@@ -1,11 +1,7 @@
-import { ComparisonOperator } from "./operationNode";
-
-export type JoinType = "AND" | "OR";
+import { JoinType, OperationNode } from "./operationNode";
 
 export type FilterExpressionNode = {
   readonly kind: "FilterExpressionNode";
-  readonly key: string;
-  readonly operation: ComparisonOperator;
-  readonly value: unknown;
-  readonly joinType: JoinType;
+  readonly expressions: (FilterExpressionNode | OperationNode)[];
+  readonly joinType?: JoinType;
 };

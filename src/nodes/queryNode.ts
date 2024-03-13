@@ -7,6 +7,6 @@ export type QueryNode = {
   readonly kind: "QueryNode";
   readonly table: TableNode;
   readonly keyConditions: KeyConditionNode[];
-  readonly filterExpressions: FilterExpressionNode[];
+  readonly filterExpression: FilterExpressionNode;
   readonly limit?: LimitNode;
 };
