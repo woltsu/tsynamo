@@ -24,6 +24,7 @@ import {
   SelectAttributes,
   StripKeys,
 } from "../typeHelpers";
+import { preventAwait } from "../util/preventAwait";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<DeepPartial<O>>[] | undefined>;
@@ -790,6 +791,11 @@ export class QueryQueryBuilder<
     return (result.Items as StripKeys<DeepPartial<O>>[]) ?? undefined;
   };
 }
+
+preventAwait(
+  QueryQueryBuilder,
+  "Don't await QueryQueryBuilder instances directly. To execute the query you need to call the `execute` method"
+);
 
 interface GetQueryBuilderProps {
   readonly node: QueryNode;
