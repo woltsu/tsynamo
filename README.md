@@ -5,7 +5,8 @@ Type-safe DynamoDB query builder! Inspired by [Kysely](https://github.com/kysely
 Usable with AWS SDK v3 `DynamoDBDocumentClient`.
 
 > [!NOTE]
-> Currently this is a POC and a WIP, and only supports the basic get item query.
+> Currently this is a POC and a WIP. Currently, `get-item` and `query` operations are
+> supported, but I am planning to add support for the rest of the operations too.
 
 ![](https://github.com/woltsu/tsynamo/blob/main/assets/demo.gif)
 
