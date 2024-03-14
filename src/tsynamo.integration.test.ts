@@ -94,6 +94,21 @@ describe("tsynamo", () => {
       expect(data?.someBoolean).toBe(TEST_ITEM_1.someBoolean);
       expect(Object.keys(data!).length).toBe(2);
     });
+    it("can't await instance directly", async () => {
+      expect(
+        async () =>
+          await tsynamoClient
+            .getItemFrom("myTable")
+            .keys({
+              userId: TEST_ITEM_1.userId,
+              timestamp: TEST_ITEM_1.timestamp,
+            })
+            .consistentRead(true)
+            .attributes(["somethingElse", "someBoolean"])
+      ).rejects.toThrowError(
+        "Don't await GetQueryBuilder instances directly. To execute the query you need to call the `execute` method"
+      );
+    });
   });
 
   describe("query", () => {

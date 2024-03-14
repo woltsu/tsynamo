@@ -7,6 +7,7 @@ import {
   SelectAttributes,
   StripKeys,
 } from "../typeHelpers";
+import { preventAwait } from "../util/preventAwait";
 
 export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
@@ -88,6 +89,11 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     return (item.Item as StripKeys<DeepPartial<O>>) ?? undefined;
   };
 }
+
+preventAwait(
+  GetQueryBuilder,
+  "Don't await GetQueryBuilder instances directly. To execute the query you need to call the `execute` method"
+);
 
 interface GetQueryBuilderProps {
   readonly node: GetNode;
