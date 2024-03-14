@@ -65,3 +65,8 @@ export type SelectAttributes<
 > = {
   [A in Attributes[number]]: Table[A];
 };
+
+export type IsNotSpecificString<
+  T extends string,
+  SpecificString extends string
+> = T extends SpecificString ? never : T;

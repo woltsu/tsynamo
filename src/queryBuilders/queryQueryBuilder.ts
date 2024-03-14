@@ -5,6 +5,7 @@ import {
   FilterConditionComparators,
   FunctionExpression,
   KeyConditionComparators,
+  NotExpression,
 } from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
 import {
@@ -14,6 +15,7 @@ import {
   SelectAttributes,
   StripKeys,
 } from "../typeHelpers";
+import { FilterExpressionNotExpression } from "../nodes/filterExpressionNotExpression";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
@@ -44,32 +46,48 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
 
   /**
    * filterExpression methods
+   *
+   * @todo Currently NOT FilterExpression returns operations as suggestions as well.
    */
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
+    key: Exclude<Key, "NOT">,
+    operation: Key extends NotExpression ? never : FilterConditionComparators,
+    val: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
+    not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
     ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
-    key: Key,
-    operation: FilterConditionComparators,
-    val: StripKeys<DDB[Table][Key]>
+  filterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   /**
    * orFilterExpression methods
    */
-  orFilterExpression(
+  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    key: Key,
+    operation: FilterConditionComparators,
+    val: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
+    not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
     ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
-    key: Key,
-    operation: FilterConditionComparators,
-    val: StripKeys<DDB[Table][Key]>
+  orFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O>;
@@ -98,31 +116,38 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
    * filterExpression methods
    */
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
-    builder: (
-      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-  ): QueryQueryBuilderInterface<DDB, Table, O>;
-
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
-  ): QueryQueryBuilderInterface<DDB, Table, O>;
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    not: NotExpression,
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  filterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   /**
    * orFilterExpression methods
    */
-  orFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-  ): QueryQueryBuilderInterface<DDB, Table, O>;
-
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
-  ): QueryQueryBuilderInterface<DDB, Table, O>;
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   _getNode(): QueryNode;
 }
@@ -227,6 +252,16 @@ export class QueryQueryBuilder<
           value: StripKeys<DDB[Table][Key]>
         ]
       | [
+          not: NotExpression,
+          builder: (
+            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+              DDB,
+              Table,
+              O
+            >
+          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+        ]
+      | [
           builder: (
             qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
               DDB,
@@ -238,6 +273,8 @@ export class QueryQueryBuilder<
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     if (
       typeof args[0] !== "function" &&
+      args[0] !== "NOT" &&
+      typeof args[1] !== "function" &&
       args[1] !== undefined &&
       args[2] !== undefined
     ) {
@@ -259,8 +296,16 @@ export class QueryQueryBuilder<
           },
         },
       });
-    } else if (typeof args[0] === "function") {
-      const builder = args[0];
+    } else if (typeof args[0] === "function" || typeof args[1] === "function") {
+      let builder;
+
+      if (typeof args[0] === "function") {
+        builder = args[0];
+      } else if (typeof args[1] === "function") {
+        builder = args[1];
+      }
+
+      if (!builder) throw new Error("Could not find builder");
 
       const qb = new QueryQueryBuilder<DDB, Table, O>({
         ...this.#props,
@@ -275,6 +320,16 @@ export class QueryQueryBuilder<
       });
 
       const result = builder(qb);
+      let resultNode: FilterExpressionNode | FilterExpressionNotExpression =
+        result._getNode().filterExpression;
+
+      if (args[0] === "NOT") {
+        resultNode = {
+          kind: "FilterExpressionNotExpression",
+          expr: { ...resultNode },
+          joinType: "AND",
+        };
+      }
 
       return new QueryQueryBuilder<DDB, Table, O>({
         ...this.#props,
@@ -282,9 +337,8 @@ export class QueryQueryBuilder<
           ...this.#props.node,
           filterExpression: {
             ...this.#props.node.filterExpression,
-            expressions: this.#props.node.filterExpression.expressions.concat(
-              result._getNode().filterExpression
-            ),
+            expressions:
+              this.#props.node.filterExpression.expressions.concat(resultNode),
           },
         },
       });
@@ -301,6 +355,16 @@ export class QueryQueryBuilder<
           value: StripKeys<DDB[Table][Key]>
         ]
       | [
+          not: NotExpression,
+          builder: (
+            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+              DDB,
+              Table,
+              O
+            >
+          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+        ]
+      | [
           builder: (
             qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
               DDB,
@@ -312,6 +376,8 @@ export class QueryQueryBuilder<
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     if (
       typeof args[0] !== "function" &&
+      args[0] !== "NOT" &&
+      typeof args[1] !== "function" &&
       args[1] !== undefined &&
       args[2] !== undefined
     ) {
@@ -333,8 +399,16 @@ export class QueryQueryBuilder<
           },
         },
       });
-    } else if (typeof args[0] === "function") {
-      const builder = args[0];
+    } else if (typeof args[0] === "function" || typeof args[1] === "function") {
+      let builder;
+
+      if (typeof args[0] === "function") {
+        builder = args[0];
+      } else if (typeof args[1] === "function") {
+        builder = args[1];
+      }
+
+      if (!builder) throw new Error("Could not find builder");
 
       const qb = new QueryQueryBuilder<DDB, Table, O>({
         ...this.#props,
@@ -349,6 +423,16 @@ export class QueryQueryBuilder<
       });
 
       const result = builder(qb);
+      let resultNode: FilterExpressionNode | FilterExpressionNotExpression =
+        result._getNode().filterExpression;
+
+      if (args[0] === "NOT") {
+        resultNode = {
+          kind: "FilterExpressionNotExpression",
+          expr: { ...resultNode },
+          joinType: "OR",
+        };
+      }
 
       return new QueryQueryBuilder<DDB, Table, O>({
         ...this.#props,
@@ -356,15 +440,14 @@ export class QueryQueryBuilder<
           ...this.#props.node,
           filterExpression: {
             ...this.#props.node.filterExpression,
-            expressions: this.#props.node.filterExpression.expressions.concat(
-              result._getNode().filterExpression
-            ),
+            expressions:
+              this.#props.node.filterExpression.expressions.concat(resultNode),
           },
         },
       });
     }
 
-    throw new Error("Invalid arguments given to orFilterExpression");
+    throw new Error("Invalid arguments given to filterExpression");
   }
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O> {

@@ -161,6 +161,29 @@ describe("tsynamo", () => {
 
       expect(data).toMatchSnapshot();
     });
+
+    it("handles a query with a NOT FilterExpression", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("NOT", (qb) =>
+          qb.filterExpression("someBoolean", "=", true)
+        )
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("someBoolean", "=", true)
+        .orFilterExpression("NOT", (qb) =>
+          qb.filterExpression("somethingElse", "=", 0)
+        )
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
   });
 });
 
