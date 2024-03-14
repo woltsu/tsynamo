@@ -12,7 +12,7 @@ import {
   PickNonKeys,
   PickSk,
   SelectAttributes,
-  StripKeys
+  StripKeys,
 } from "../typeHelpers";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
@@ -214,7 +214,7 @@ export class QueryQueryBuilder<
         filterExpression: {
           ...this.#props.node.filterExpression,
           expressions: this.#props.node.filterExpression.expressions.concat({
-            kind: "OperationNode",
+            kind: "FilterExpressionComparatorExpressions",
             joinType: "AND",
             key,
             operation,
@@ -237,7 +237,7 @@ export class QueryQueryBuilder<
         filterExpression: {
           ...this.#props.node.filterExpression,
           expressions: this.#props.node.filterExpression.expressions.concat({
-            kind: "OperationNode",
+            kind: "FilterExpressionComparatorExpressions",
             joinType: "OR",
             key,
             operation,
@@ -386,7 +386,7 @@ export class QueryQueryBuilder<
         res += ` ${expr.joinType} `;
       }
 
-      if (expr.kind === "OperationNode") {
+      if (expr.kind === "FilterExpressionComparatorExpressions") {
         const attributeValue = `:filterExpressionValue${i + offset}`;
         // TODO: Instead of expr.key, use AttributeNames here to avoid
         // problems with using reserved words.
