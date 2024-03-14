@@ -74,6 +74,13 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     >
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // begins_with function expression
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Key,
+    expr: Extract<FunctionExpression, "begins_with">,
+    substr: string
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
   // BETWEEN expression
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
@@ -106,6 +113,22 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  // function expression for functions that only take path as param
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Exclude<Key, "NOT">,
+    func: Extract<
+      FunctionExpression,
+      "attribute_exists" | "attribute_not_exists"
+    >
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  // begins_with function expression
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Key,
+    expr: Extract<FunctionExpression, "begins_with">,
+    substr: string
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   // BETWEEN expression
@@ -163,6 +186,20 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Exclude<Key, "NOT">,
+    func: Extract<
+      FunctionExpression,
+      "attribute_exists" | "attribute_not_exists"
+    >
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Key,
+    func: Extract<FunctionExpression, "begins_with">,
+    substr: string
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
     left: StripKeys<GetFromPath<DDB[Table], Key>>,
@@ -189,6 +226,20 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Exclude<Key, "NOT">,
+    func: Extract<
+      FunctionExpression,
+      "attribute_exists" | "attribute_not_exists"
+    >
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Key,
+    func: Extract<FunctionExpression, "begins_with">,
+    substr: string
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
@@ -232,6 +283,7 @@ type FilterExprArgs<
         "attribute_exists" | "attribute_not_exists"
       >
     ]
+  | [key: Key, func: Extract<FunctionExpression, "begins_with">, substr: string]
   | [
       key: Key,
       expr: BetweenExpression,
@@ -345,7 +397,31 @@ export class QueryQueryBuilder<
     joinType: JoinType,
     ...args: FilterExprArgs<DDB, Table, O, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    if (args[1] === "attribute_exists" || args[1] === "attribute_not_exists") {
+    if (args[1] === "begins_with") {
+      const [key, f, substr] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "FilterExpressionJoinTypeNode",
+              expr: {
+                kind: "BeginsWithFunctionExpression",
+                key,
+                substr,
+              },
+              joinType,
+            }),
+          },
+        },
+      });
+    } else if (
+      args[1] === "attribute_exists" ||
+      args[1] === "attribute_not_exists"
+    ) {
       const [key, func] = args;
       let resultExpr:
         | AttributeExistsFunctionExpression
@@ -627,6 +703,12 @@ export class QueryQueryBuilder<
       case "AttributeNotExistsFunctionExpression": {
         res += `attribute_not_exists(${expr.key})`;
         break;
+      }
+
+      case "BeginsWithFunctionExpression": {
+        res += `begins_with(${expr.key}, ${attributeValue})`;
+
+        filterExpressionAttributeValues.set(attributeValue, expr.substr);
       }
     }
 

@@ -236,6 +236,24 @@ describe("tsynamo", () => {
 
       expect(data).toMatchSnapshot();
     });
+
+    it("handles a FilterExpression that uses begins_with", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "begins_with", "k")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "begins_with", "ke")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
   });
 });
 
@@ -272,6 +290,10 @@ const TEST_ITEM_5 = {
   dataTimestamp: 111,
   somethingElse: -5,
   someBoolean: true,
+  nested: {
+    nestedString: "koy",
+    nestedBoolean: false,
+  },
 };
 
 const TEST_ITEM_6 = {
