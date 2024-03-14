@@ -148,6 +148,21 @@ await tsynamoClient
 > This would compile as the following FilterExpression:
 > `eventType = "LOG_IN" OR (eventType = "UNAUTHORIZED_ACCESS" AND userAuthenticated = true`)
 
+### NOT filter expression
+
+```ts
+await tsynamoClient
+  .query("UserEvents")
+  .keyCondition("userId", "=", "123")
+  .filterExpression("NOT", (qb) =>
+    qb.filterExpression("eventType", "=", "LOG_IN")
+  )
+  .execute();
+```
+
+> This would compile as the following FilterExpression:
+> `NOT eventType = "LOG_IN"`, i.e. return all events whose types is not "LOG_IN"
+
 ## Delete item
 
 WIP
