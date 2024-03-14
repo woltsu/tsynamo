@@ -1,4 +1,4 @@
-import { KeyConditionComparators } from "./operationNode";
+import { KeyConditionComparators } from "./operands";
 
 export type KeyConditionComparatorExpression = {
   readonly kind: "KeyConditionComparatorExpression";

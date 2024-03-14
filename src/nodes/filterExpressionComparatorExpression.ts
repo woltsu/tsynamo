@@ -1,4 +1,4 @@
-import { FilterConditionComparators } from "./operationNode";
+import { FilterConditionComparators } from "./operands";
 
 export type FilterExpressionComparatorExpressions = {
   readonly kind: "FilterExpressionComparatorExpressions";

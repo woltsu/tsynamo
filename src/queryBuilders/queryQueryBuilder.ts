@@ -1,4 +1,8 @@
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  FilterExpressionJoinTypeNode,
+  JoinType,
+} from "../nodes/filterExpressionJoinTypeNode";
 import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import {
   BetweenExpression,
@@ -6,7 +10,7 @@ import {
   FunctionExpression,
   KeyConditionComparators,
   NotExpression,
-} from "../nodes/operationNode";
+} from "../nodes/operands";
 import { QueryNode } from "../nodes/queryNode";
 import {
   GetFromPath,
@@ -17,11 +21,8 @@ import {
   SelectAttributes,
   StripKeys,
 } from "../typeHelpers";
-import { FilterExpressionNotExpression } from "../nodes/filterExpressionNotExpression";
-import {
-  FilterExpressionJoinTypeNode,
-  JoinType,
-} from "../nodes/filterExpressionJoinTypeNode";
+import { AttributeExistsFunctionExpression } from "../nodes/attributeExistsFunctionExpression";
+import { AttributeNotExistsFunctionExpression } from "../nodes/attributeNotExistsFunctionExpression";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
@@ -55,12 +56,24 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
    *
    * @todo Currently NOT FilterExpression returns operations as suggestions as well.
    */
+
+  // Regular operand
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Exclude<Key, "NOT">,
     operation: Key extends NotExpression ? never : FilterConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // function expression for functions that only take path as param
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Exclude<Key, "NOT">,
+    func: Extract<
+      FunctionExpression,
+      "attribute_exists" | "attribute_not_exists"
+    >
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  // BETWEEN expression
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
@@ -68,6 +81,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     right: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // NOT expression
   filterExpression(
     not: NotExpression,
     builder: (
@@ -75,6 +89,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // Nested expression
   filterExpression(
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -84,12 +99,15 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   /**
    * orFilterExpression methods
    */
+
+  // Regular operand
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // BETWEEN expression
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
@@ -97,6 +115,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     right: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // NOT expression
   orFilterExpression(
     not: NotExpression,
     builder: (
@@ -104,6 +123,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  // Nested expression
   orFilterExpression(
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -192,6 +212,42 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
 
   _getNode(): QueryNode;
 }
+
+type FilterExprArgs<
+  DDB,
+  Table extends keyof DDB,
+  O,
+  Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>
+> =
+  | [
+      key: Key,
+      operation: FilterConditionComparators,
+      value: StripKeys<GetFromPath<DDB[Table], Key>>
+    ]
+  | [
+      key: Exclude<Key, "NOT">,
+      func: Extract<
+        FunctionExpression,
+        "attribute_exists" | "attribute_not_exists"
+      >
+    ]
+  | [
+      key: Key,
+      expr: BetweenExpression,
+      left: StripKeys<GetFromPath<DDB[Table], Key>>,
+      right: StripKeys<GetFromPath<DDB[Table], Key>>
+    ]
+  | [
+      not: NotExpression,
+      builder: (
+        qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+      ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ]
+  | [
+      builder: (
+        qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+      ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ];
 
 /**
  * @todo support IndexName
@@ -286,39 +342,35 @@ export class QueryQueryBuilder<
 
   _filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     joinType: JoinType,
-    ...args:
-      | [
-          key: Key,
-          operation: FilterConditionComparators,
-          value: StripKeys<GetFromPath<DDB[Table], Key>>
-        ]
-      | [
-          key: Key,
-          expr: BetweenExpression,
-          left: StripKeys<GetFromPath<DDB[Table], Key>>,
-          right: StripKeys<GetFromPath<DDB[Table], Key>>
-        ]
-      | [
-          not: NotExpression,
-          builder: (
-            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
-              DDB,
-              Table,
-              O
-            >
-          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-        ]
-      | [
-          builder: (
-            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
-              DDB,
-              Table,
-              O
-            >
-          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-        ]
+    ...args: FilterExprArgs<DDB, Table, O, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    if (args[1] === "BETWEEN") {
+    if (args[1] === "attribute_exists" || args[1] === "attribute_not_exists") {
+      const [key, func] = args;
+      let resultExpr:
+        | AttributeExistsFunctionExpression
+        | AttributeNotExistsFunctionExpression;
+
+      if (func === "attribute_exists") {
+        resultExpr = { kind: "AttributeExistsFunctionExpression", key };
+      } else {
+        resultExpr = { kind: "AttributeNotExistsFunctionExpression", key };
+      }
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "FilterExpressionJoinTypeNode",
+              expr: resultExpr,
+              joinType,
+            }),
+          },
+        },
+      });
+    } else if (args[1] === "BETWEEN") {
       const [key, expr, left, right] = args;
 
       return new QueryQueryBuilder<DDB, Table, O>({
@@ -428,73 +480,13 @@ export class QueryQueryBuilder<
 
   // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args:
-      | [
-          key: Key,
-          operation: FilterConditionComparators,
-          value: StripKeys<GetFromPath<DDB[Table], Key>>
-        ]
-      | [
-          key: Key,
-          expr: BetweenExpression,
-          left: StripKeys<GetFromPath<DDB[Table], Key>>,
-          right: StripKeys<GetFromPath<DDB[Table], Key>>
-        ]
-      | [
-          not: NotExpression,
-          builder: (
-            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
-              DDB,
-              Table,
-              O
-            >
-          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-        ]
-      | [
-          builder: (
-            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
-              DDB,
-              Table,
-              O
-            >
-          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-        ]
+    ...args: FilterExprArgs<DDB, Table, O, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     return this._filterExpression("AND", ...args);
   }
 
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args:
-      | [
-          key: Key,
-          operation: FilterConditionComparators,
-          value: StripKeys<GetFromPath<DDB[Table], Key>>
-        ]
-      | [
-          key: Key,
-          expr: BetweenExpression,
-          left: StripKeys<GetFromPath<DDB[Table], Key>>,
-          right: StripKeys<GetFromPath<DDB[Table], Key>>
-        ]
-      | [
-          not: NotExpression,
-          builder: (
-            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
-              DDB,
-              Table,
-              O
-            >
-          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-        ]
-      | [
-          builder: (
-            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
-              DDB,
-              Table,
-              O
-            >
-          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-        ]
+    ...args: FilterExprArgs<DDB, Table, O, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     return this._filterExpression("OR", ...args);
   }
@@ -623,6 +615,16 @@ export class QueryQueryBuilder<
           `${attributeValue}right`,
           expr.right
         );
+        break;
+      }
+
+      case "AttributeExistsFunctionExpression": {
+        res += `attribute_exists(${expr.key})`
+        break;
+      }
+
+      case "AttributeNotExistsFunctionExpression": {
+        res += `attribute_not_exists(${expr.key})`
         break;
       }
     }

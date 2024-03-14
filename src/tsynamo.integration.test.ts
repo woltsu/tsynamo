@@ -217,6 +217,24 @@ describe("tsynamo", () => {
 
       expect(data).toMatchSnapshot();
     });
+
+    it("handles a FilterExpression that uses attribute_exists and attribute_not_exists", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "attribute_exists")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "attribute_not_exists")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
   });
 });
 

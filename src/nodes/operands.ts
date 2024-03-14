@@ -1,5 +1,12 @@
 export type BetweenExpression = "BETWEEN";
-export type FunctionExpression = "begins_with" | "attribute_exists";
+
+// TODO: Support "contains" and "size"
+export type FunctionExpression =
+  | "attribute_exists"
+  | "attribute_not_exists"
+  | "begins_with"
+  | "attribute_type";
+
 export type NotExpression = "NOT";
 
 export type KeyConditionComparators = "=" | "<" | "<=" | ">" | ">=";
