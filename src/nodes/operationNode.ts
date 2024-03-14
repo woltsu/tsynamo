@@ -1,11 +1,8 @@
 // TODO: Support BETWEEN & BEGINS WITH
-export type ComparisonOperator = "=" | "<" | "<=" | ">" | ">=";
 export type JoinType = "AND" | "OR";
+export type BetweenExpression = "BETWEEN";
+export type FunctionExpression = "begins_with" | "attribute_exists";
+export type NotExpression = "NOT";
 
-export type OperationNode = {
-  readonly kind: "OperationNode";
-  readonly key: string;
-  readonly operation: ComparisonOperator;
-  readonly value: unknown;
-  readonly joinType: JoinType;
-};
+export type KeyConditionComparators = "=" | "<" | "<=" | ">" | ">=";
+export type FilterConditionComparators = KeyConditionComparators | "<>";
