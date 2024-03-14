@@ -18,7 +18,10 @@ import {
   StripKeys,
 } from "../typeHelpers";
 import { FilterExpressionNotExpression } from "../nodes/filterExpressionNotExpression";
-import { FilterExpressionJoinTypeNode } from "../nodes/filterExpressionJoinTypeNode";
+import {
+  FilterExpressionJoinTypeNode,
+  JoinType,
+} from "../nodes/filterExpressionJoinTypeNode";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
@@ -281,8 +284,8 @@ export class QueryQueryBuilder<
     }
   }
 
-  // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
-  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+  _filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    joinType: JoinType,
     ...args:
       | [
           key: Key,
@@ -332,7 +335,7 @@ export class QueryQueryBuilder<
                 left,
                 right,
               },
-              joinType: "AND",
+              joinType,
             }),
           },
         },
@@ -354,7 +357,7 @@ export class QueryQueryBuilder<
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
               kind: "FilterExpressionJoinTypeNode",
-              joinType: "AND",
+              joinType,
               expr: {
                 kind: "FilterExpressionComparatorExpressions",
                 key,
@@ -394,7 +397,7 @@ export class QueryQueryBuilder<
       let resultNode: FilterExpressionJoinTypeNode = {
         kind: "FilterExpressionJoinTypeNode",
         expr: filterExpression,
-        joinType: "AND",
+        joinType,
       };
 
       if (args[0] === "NOT") {
@@ -421,6 +424,43 @@ export class QueryQueryBuilder<
     }
 
     throw new Error("Invalid arguments given to filterExpression");
+  }
+
+  // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    ...args:
+      | [
+          key: Key,
+          operation: FilterConditionComparators,
+          value: StripKeys<GetFromPath<DDB[Table], Key>>
+        ]
+      | [
+          key: Key,
+          expr: BetweenExpression,
+          left: StripKeys<GetFromPath<DDB[Table], Key>>,
+          right: StripKeys<GetFromPath<DDB[Table], Key>>
+        ]
+      | [
+          not: NotExpression,
+          builder: (
+            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+              DDB,
+              Table,
+              O
+            >
+          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+        ]
+      | [
+          builder: (
+            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+              DDB,
+              Table,
+              O
+            >
+          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+        ]
+  ): QueryQueryBuilderInterface<DDB, Table, O> {
+    return this._filterExpression("AND", ...args);
   }
 
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
@@ -456,111 +496,7 @@ export class QueryQueryBuilder<
           ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
         ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    if (args[1] === "BETWEEN") {
-      const [key, expr, left, right] = args;
-
-      return new QueryQueryBuilder<DDB, Table, O>({
-        ...this.#props,
-        node: {
-          ...this.#props.node,
-          filterExpression: {
-            ...this.#props.node.filterExpression,
-            expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
-              expr: {
-                kind: "BetweenConditionExpression",
-                key,
-                left,
-                right,
-              },
-              joinType: "OR",
-            }),
-          },
-        },
-      });
-    } else if (
-      typeof args[0] !== "function" &&
-      args[0] !== "NOT" &&
-      typeof args[1] !== "function" &&
-      args[1] !== undefined &&
-      args[2] !== undefined
-    ) {
-      const [key, operation, value] = args;
-
-      return new QueryQueryBuilder<DDB, Table, O>({
-        ...this.#props,
-        node: {
-          ...this.#props.node,
-          filterExpression: {
-            ...this.#props.node.filterExpression,
-            expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
-              expr: {
-                kind: "FilterExpressionComparatorExpressions",
-                key,
-                operation,
-                value,
-              },
-              joinType: "OR",
-            }),
-          },
-        },
-      });
-    } else if (typeof args[0] === "function" || typeof args[1] === "function") {
-      let builder;
-
-      if (typeof args[0] === "function") {
-        builder = args[0];
-      } else if (typeof args[1] === "function") {
-        builder = args[1];
-      }
-
-      if (!builder) throw new Error("Could not find builder");
-
-      const qb = new QueryQueryBuilder<DDB, Table, O>({
-        ...this.#props,
-        node: {
-          ...this.#props.node,
-          filterExpression: {
-            expressions: [],
-            kind: "FilterExpressionNode",
-          },
-        },
-      });
-
-      const result = builder(qb);
-      const { filterExpression } = result._getNode();
-
-      let resultNode: FilterExpressionJoinTypeNode = {
-        kind: "FilterExpressionJoinTypeNode",
-        expr: filterExpression,
-        joinType: "OR",
-      };
-
-      if (args[0] === "NOT") {
-        resultNode = {
-          ...resultNode,
-          expr: {
-            kind: "FilterExpressionNotExpression",
-            expr: filterExpression,
-          },
-        };
-      }
-
-      return new QueryQueryBuilder<DDB, Table, O>({
-        ...this.#props,
-        node: {
-          ...this.#props.node,
-          filterExpression: {
-            ...this.#props.node.filterExpression,
-            expressions:
-              this.#props.node.filterExpression.expressions.concat(resultNode),
-          },
-        },
-      });
-    }
-
-    throw new Error("Invalid arguments given to filterExpression");
+    return this._filterExpression("OR", ...args);
   }
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O> {
