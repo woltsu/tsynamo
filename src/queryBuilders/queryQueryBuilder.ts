@@ -2,9 +2,9 @@ import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import {
   BetweenExpression,
-  ComparisonOperator,
   FilterConditionComparators,
   FunctionExpression,
+  KeyConditionComparators,
 } from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
 import {
@@ -35,19 +35,19 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
 
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: KeyConditionComparators,
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
@@ -87,13 +87,13 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
 > {
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
@@ -136,7 +136,7 @@ export class QueryQueryBuilder<
         ]
       | [
           key: Key,
-          operation: ComparisonOperator,
+          operation: KeyConditionComparators,
           val: StripKeys<DDB[Table][Key]>
         ]
       | [
