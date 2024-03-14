@@ -4,17 +4,27 @@ import {
   BetweenExpression,
   ComparisonOperator,
   FilterConditionComparators,
+  FunctionExpression,
 } from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
 import {
   PickAllKeys,
   PickNonKeys,
+  PickSk,
   SelectAttributes,
-  StripKeys,
+  StripKeys
 } from "../typeHelpers";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
+
+  keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
+    key: Key,
+    expr: Key extends keyof PickSk<DDB[Table]>
+      ? Extract<FunctionExpression, "begins_with">
+      : never,
+    substr: string
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
     key: Key,
@@ -121,6 +131,11 @@ export class QueryQueryBuilder<
     ...args:
       | [
           key: Key,
+          expr: Extract<FunctionExpression, "begins_with">,
+          substr: string
+        ]
+      | [
+          key: Key,
           operation: ComparisonOperator,
           val: StripKeys<DDB[Table][Key]>
         ]
@@ -131,7 +146,24 @@ export class QueryQueryBuilder<
           right: StripKeys<DDB[Table][Key]>
         ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    if (args[1] === "BETWEEN") {
+    if (args[1] === "begins_with") {
+      const [key, expr, substr] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          keyConditions: this.#props.node.keyConditions.concat({
+            kind: "KeyConditionNode",
+            operation: {
+              kind: "BeginsWithFunctionExpression",
+              key,
+              substr,
+            },
+          }),
+        },
+      });
+    } else if (args[1] === "BETWEEN") {
       const [key, expr, left, right] = args;
 
       return new QueryQueryBuilder<DDB, Table, O>({
@@ -400,6 +432,14 @@ export class QueryQueryBuilder<
         keyConditionAttributeValues.set(
           `${attributeValue}right`,
           keyCondition.operation.right
+        );
+      } else if (
+        keyCondition.operation.kind === "BeginsWithFunctionExpression"
+      ) {
+        res += `begins_with(${keyCondition.operation.key}, ${attributeValue})`;
+        keyConditionAttributeValues.set(
+          attributeValue,
+          keyCondition.operation.substr
         );
       }
     });

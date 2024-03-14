@@ -17,6 +17,12 @@ interface DDB {
     somethingElse: number;
     someBoolean: boolean;
   };
+  myOtherTable: {
+    userId: PartitionKey<string>;
+    stringTimestamp: SortKey<string>;
+    somethingElse: number;
+    someBoolean: boolean;
+  };
 }
 
 const DDB_PORT = 8000 as const;
@@ -107,6 +113,16 @@ describe("tsynamo", () => {
       expect(data).toMatchSnapshot();
     });
 
+    it("handles a KeyCondition with begins_with function", async () => {
+      let data = await tsynamoClient
+        .query("myOtherTable")
+        .keyCondition("userId", "=", "123")
+        .keyCondition("stringTimestamp", "begins_with", "11")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
     it("handles a query with a FilterExpression", async () => {
       const data = await tsynamoClient
         .query("myTable")
@@ -183,42 +199,89 @@ const TEST_ITEM_5 = {
   someBoolean: true,
 };
 
+const TEST_ITEM_6 = {
+  userId: "123",
+  stringTimestamp: "111",
+  somethingElse: -5,
+  someBoolean: true,
+};
+
+const TEST_ITEM_7 = {
+  userId: "123",
+  stringTimestamp: "123",
+  somethingElse: -5,
+  someBoolean: true,
+};
+
 /**
  * Re-create a DynamoDB table called "myTable" with some test data.
  */
 const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
-  const deleteTableCommand = new DeleteTableCommand({
-    TableName: "myTable",
-  });
-
   try {
-    await client.send(deleteTableCommand);
+    await client.send(
+      new DeleteTableCommand({
+        TableName: "myTable",
+      })
+    );
   } catch (e: unknown) {
     if (!(e instanceof ResourceNotFoundException)) {
       throw e;
     }
   }
 
-  const createTableCommand = new CreateTableCommand({
-    TableName: "myTable",
-    KeySchema: [
-      { AttributeName: "userId", KeyType: "HASH" },
-      { AttributeName: "dataTimestamp", KeyType: "RANGE" },
-    ],
-    AttributeDefinitions: [
-      {
-        AttributeName: "userId",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "dataTimestamp",
-        AttributeType: "N",
-      },
-    ],
-    BillingMode: "PAY_PER_REQUEST",
-  });
+  try {
+    await client.send(
+      new DeleteTableCommand({
+        TableName: "myOtherTable",
+      })
+    );
+  } catch (e: unknown) {
+    if (!(e instanceof ResourceNotFoundException)) {
+      throw e;
+    }
+  }
 
-  await client.send(createTableCommand);
+  await client.send(
+    new CreateTableCommand({
+      TableName: "myTable",
+      KeySchema: [
+        { AttributeName: "userId", KeyType: "HASH" },
+        { AttributeName: "dataTimestamp", KeyType: "RANGE" },
+      ],
+      AttributeDefinitions: [
+        {
+          AttributeName: "userId",
+          AttributeType: "S",
+        },
+        {
+          AttributeName: "dataTimestamp",
+          AttributeType: "N",
+        },
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    })
+  );
+
+  await client.send(
+    new CreateTableCommand({
+      TableName: "myOtherTable",
+      KeySchema: [
+        { AttributeName: "userId", KeyType: "HASH" },
+        { AttributeName: "stringTimestamp", KeyType: "RANGE" },
+      ],
+      AttributeDefinitions: [
+        {
+          AttributeName: "userId",
+          AttributeType: "S",
+        },
+        {
+          AttributeName: "stringTimestamp",
+          AttributeType: "S",
+        },
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    })
+  );
 
   await client.send(
     new PutCommand({
@@ -252,6 +315,20 @@ const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
     new PutCommand({
       TableName: "myTable",
       Item: TEST_ITEM_5,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myOtherTable",
+      Item: TEST_ITEM_6,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myOtherTable",
+      Item: TEST_ITEM_7,
     })
   );
 };

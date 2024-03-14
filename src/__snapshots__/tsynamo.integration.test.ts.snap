@@ -17,6 +17,17 @@ exports[`tsynamo > query > handles a KeyCondition with BETWEEN expression 1`] = 
 ]
 `;
 
+exports[`tsynamo > query > handles a KeyCondition with begins_with function 1`] = `
+[
+  {
+    "someBoolean": true,
+    "somethingElse": -5,
+    "stringTimestamp": "111",
+    "userId": "123",
+  },
+]
+`;
+
 exports[`tsynamo > query > handles a query with a FilterExpression 1`] = `
 [
   {
