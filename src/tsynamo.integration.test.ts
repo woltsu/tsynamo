@@ -101,7 +101,7 @@ describe("tsynamo", () => {
             .getItemFrom("myTable")
             .keys({
               userId: TEST_ITEM_1.userId,
-              timestamp: TEST_ITEM_1.timestamp,
+              dataTimestamp: TEST_ITEM_1.dataTimestamp,
             })
             .consistentRead(true)
             .attributes(["somethingElse", "someBoolean"])
