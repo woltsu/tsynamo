@@ -39,7 +39,7 @@ export interface DDB {
 }
 ```
 
-> Notice that you can have multiple tables in the DDB schema. You can also have nested attributes in the table.
+> Notice that you can have multiple tables in the DDB schema. Nested attributes are supported too.
 
 2. Create a DynamoDB document client:
 
