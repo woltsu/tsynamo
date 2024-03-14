@@ -131,10 +131,6 @@ type RecursiveGet<Obj, Properties> = Properties extends [
     : undefined
   : Obj;
 
-// We have seen `As` in Chapter 6. It
-// forces typescript to consider that
-// the first type parameter is a subtype
-// of the second.
 type As<A, B> = A extends B ? A : never;
 
 export type ObjectKeyPaths<T> =
