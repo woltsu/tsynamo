@@ -151,17 +151,3 @@ export type ObjectKeyPaths<T> =
         never
     : // Leaf value reached, don't return anything
       never;
-
-type Table = {
-  userId: PartitionKey<string>;
-  dataTimestamp: SortKey<number>;
-  somethingElse: number;
-  someBoolean: boolean;
-  nested: {
-    someNestedKey: string;
-  };
-};
-
-type Keys = PickPk<Table>;
-
-type Paths = ObjectKeyPaths<Table>;
