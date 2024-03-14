@@ -9,6 +9,8 @@ import {
 } from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
 import {
+  GetFromPath,
+  ObjectKeyPaths,
   PickAllKeys,
   PickNonKeys,
   PickSk,
@@ -49,20 +51,20 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
    *
    * @todo Currently NOT FilterExpression returns operations as suggestions as well.
    */
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Exclude<Key, "NOT">,
     operation: Key extends NotExpression ? never : FilterConditionComparators,
-    val: StripKeys<DDB[Table][Key]>
+    val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
-    left: StripKeys<DDB[Table][Key]>,
-    right: StripKeys<DDB[Table][Key]>
+    left: StripKeys<GetFromPath<DDB[Table], Key>>,
+    right: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
+  filterExpression(
     not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -78,20 +80,20 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   /**
    * orFilterExpression methods
    */
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operation: FilterConditionComparators,
-    val: StripKeys<DDB[Table][Key]>
+    val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
-    left: StripKeys<DDB[Table][Key]>,
-    right: StripKeys<DDB[Table][Key]>
+    left: StripKeys<GetFromPath<DDB[Table], Key>>,
+    right: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
+  orFilterExpression(
     not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -129,20 +131,20 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
   /**
    * filterExpression methods
    */
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operation: FilterConditionComparators,
-    val: StripKeys<DDB[Table][Key]>
+    val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
-    left: StripKeys<DDB[Table][Key]>,
-    right: StripKeys<DDB[Table][Key]>
+    left: StripKeys<GetFromPath<DDB[Table], Key>>,
+    right: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  filterExpression(
     not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -158,20 +160,20 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
   /**
    * orFilterExpression methods
    */
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operation: FilterConditionComparators,
-    val: StripKeys<DDB[Table][Key]>
+    val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
-  orFilterExpression<Key extends keyof PickAllKeys<DDB[Table]> & string>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
-    left: StripKeys<DDB[Table][Key]>,
-    right: StripKeys<DDB[Table][Key]>
+    left: StripKeys<GetFromPath<DDB[Table], Key>>,
+    right: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  orFilterExpression(
     not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -279,18 +281,18 @@ export class QueryQueryBuilder<
   }
 
   // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
-  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args:
       | [
           key: Key,
           operation: FilterConditionComparators,
-          value: StripKeys<DDB[Table][Key]>
+          value: StripKeys<GetFromPath<DDB[Table], Key>>
         ]
       | [
           key: Key,
           expr: BetweenExpression,
-          left: StripKeys<DDB[Table][Key]>,
-          right: StripKeys<DDB[Table][Key]>
+          left: StripKeys<GetFromPath<DDB[Table], Key>>,
+          right: StripKeys<GetFromPath<DDB[Table], Key>>
         ]
       | [
           not: NotExpression,
@@ -407,18 +409,18 @@ export class QueryQueryBuilder<
     throw new Error("Invalid arguments given to filterExpression");
   }
 
-  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args:
       | [
           key: Key,
           operation: FilterConditionComparators,
-          value: StripKeys<DDB[Table][Key]>
+          value: StripKeys<GetFromPath<DDB[Table], Key>>
         ]
       | [
           key: Key,
           expr: BetweenExpression,
-          left: StripKeys<DDB[Table][Key]>,
-          right: StripKeys<DDB[Table][Key]>
+          left: StripKeys<GetFromPath<DDB[Table], Key>>,
+          right: StripKeys<GetFromPath<DDB[Table], Key>>
         ]
       | [
           not: NotExpression,

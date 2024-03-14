@@ -44,6 +44,10 @@ exports[`tsynamo > query > handles a query with a BETWEEN FilterExpression 1`] =
   },
   {
     "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
     "someBoolean": false,
     "somethingElse": 0,
     "userId": "123",
@@ -101,6 +105,10 @@ exports[`tsynamo > query > handles a query with a NOT FilterExpression 1`] = `
   },
   {
     "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
     "someBoolean": false,
     "somethingElse": 0,
     "userId": "123",
@@ -170,6 +178,10 @@ exports[`tsynamo > query > handles a query with a simple KeyCondition 1`] = `
   },
   {
     "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
     "someBoolean": false,
     "somethingElse": 0,
     "userId": "123",
@@ -183,6 +195,21 @@ exports[`tsynamo > query > handles a query with multiple expressions 1`] = `
     "dataTimestamp": 111,
     "someBoolean": true,
     "somethingElse": -5,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles conditions on nested keys 1`] = `
+[
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
     "userId": "123",
   },
 ]

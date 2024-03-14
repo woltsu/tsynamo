@@ -16,6 +16,10 @@ interface DDB {
     dataTimestamp: SortKey<number>;
     somethingElse: number;
     someBoolean: boolean;
+    nested: {
+      nestedString: number;
+      nestedBoolean: boolean;
+    };
   };
   myOtherTable: {
     userId: PartitionKey<string>;
@@ -203,6 +207,16 @@ describe("tsynamo", () => {
 
       expect(data).toMatchSnapshot();
     });
+
+    it("handles conditions on nested keys", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedBoolean", "=", true)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
   });
 });
 
@@ -253,6 +267,17 @@ const TEST_ITEM_7 = {
   stringTimestamp: "123",
   somethingElse: -5,
   someBoolean: true,
+};
+
+const TEST_ITEM_8 = {
+  userId: "123",
+  dataTimestamp: 999,
+  somethingElse: 0,
+  someBoolean: false,
+  nested: {
+    nestedString: "key",
+    nestedBoolean: true,
+  },
 };
 
 /**
@@ -371,6 +396,13 @@ const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
     new PutCommand({
       TableName: "myOtherTable",
       Item: TEST_ITEM_7,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myTable",
+      Item: TEST_ITEM_8,
     })
   );
 };
