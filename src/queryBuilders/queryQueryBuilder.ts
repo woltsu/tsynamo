@@ -18,6 +18,9 @@ import {
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
 
+  /**
+   * keyCondition methods
+   */
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
     key: Key,
     expr: Key extends keyof PickSk<DDB[Table]>
@@ -39,28 +42,34 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   * filterExpression methods
+   */
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   * orFilterExpression methods
+   */
+  orFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
-  ): QueryQueryBuilderInterface<DDB, Table, O>;
-
-  andNestedFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-  ): QueryQueryBuilderInterface<DDB, Table, O>;
-
-  orNestedFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O>;
@@ -85,29 +94,37 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
   Table extends keyof DDB,
   O
 > {
+  /**
+   * filterExpression methods
+   */
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
-  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  /**
+   * orFilterExpression methods
+   */
+  orFilterExpression(
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
-  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  andNestedFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
-
-  orNestedFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
-  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+  _getNode(): QueryNode;
 }
 
 /**
@@ -203,49 +220,151 @@ export class QueryQueryBuilder<
 
   // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
-    key: Key,
-    operation: FilterConditionComparators,
-    value: StripKeys<DDB[Table][Key]>
+    ...args:
+      | [
+          key: Key,
+          operation: FilterConditionComparators,
+          value: StripKeys<DDB[Table][Key]>
+        ]
+      | [
+          builder: (
+            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+              DDB,
+              Table,
+              O
+            >
+          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+        ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    return new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        filterExpression: {
-          ...this.#props.node.filterExpression,
-          expressions: this.#props.node.filterExpression.expressions.concat({
-            kind: "FilterExpressionComparatorExpressions",
-            joinType: "AND",
-            key,
-            operation,
-            value,
-          }),
+    if (
+      typeof args[0] !== "function" &&
+      args[1] !== undefined &&
+      args[2] !== undefined
+    ) {
+      const [key, operation, value] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "FilterExpressionComparatorExpressions",
+              joinType: "AND",
+              key,
+              operation,
+              value,
+            }),
+          },
         },
-      },
-    });
+      });
+    } else if (typeof args[0] === "function") {
+      const builder = args[0];
+
+      const qb = new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            expressions: [],
+            kind: "FilterExpressionNode",
+            joinType: "AND",
+          },
+        },
+      });
+
+      const result = builder(qb);
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat(
+              result._getNode().filterExpression
+            ),
+          },
+        },
+      });
+    }
+
+    throw new Error("Invalid arguments given to filterExpression");
   }
 
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
-    key: Key,
-    operation: FilterConditionComparators,
-    value: StripKeys<DDB[Table][Key]>
+    ...args:
+      | [
+          key: Key,
+          operation: FilterConditionComparators,
+          value: StripKeys<DDB[Table][Key]>
+        ]
+      | [
+          builder: (
+            qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
+              DDB,
+              Table,
+              O
+            >
+          ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+        ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    return new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        filterExpression: {
-          ...this.#props.node.filterExpression,
-          expressions: this.#props.node.filterExpression.expressions.concat({
-            kind: "FilterExpressionComparatorExpressions",
-            joinType: "OR",
-            key,
-            operation,
-            value,
-          }),
+    if (
+      typeof args[0] !== "function" &&
+      args[1] !== undefined &&
+      args[2] !== undefined
+    ) {
+      const [key, operation, value] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "FilterExpressionComparatorExpressions",
+              joinType: "OR",
+              key,
+              operation,
+              value,
+            }),
+          },
         },
-      },
-    });
+      });
+    } else if (typeof args[0] === "function") {
+      const builder = args[0];
+
+      const qb = new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            expressions: [],
+            kind: "FilterExpressionNode",
+            joinType: "OR",
+          },
+        },
+      });
+
+      const result = builder(qb);
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat(
+              result._getNode().filterExpression
+            ),
+          },
+        },
+      });
+    }
+
+    throw new Error("Invalid arguments given to orFilterExpression");
   }
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O> {
@@ -263,72 +382,6 @@ export class QueryQueryBuilder<
 
   _getNode() {
     return this.#props.node;
-  }
-
-  andNestedFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterface<DDB, Table, O>
-    ) => QueryQueryBuilderInterface<DDB, Table, O>
-  ): QueryQueryBuilderInterface<DDB, Table, O> {
-    const qb = new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        filterExpression: {
-          expressions: [],
-          kind: "FilterExpressionNode",
-          joinType: "AND",
-        },
-      },
-    });
-
-    const result = builder(qb);
-
-    return new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        filterExpression: {
-          ...this.#props.node.filterExpression,
-          expressions: this.#props.node.filterExpression.expressions.concat(
-            result._getNode().filterExpression
-          ),
-        },
-      },
-    });
-  }
-
-  orNestedFilterExpression(
-    builder: (
-      qb: QueryQueryBuilderInterface<DDB, Table, O>
-    ) => QueryQueryBuilderInterface<DDB, Table, O>
-  ): QueryQueryBuilderInterface<DDB, Table, O> {
-    const qb = new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        filterExpression: {
-          expressions: [],
-          kind: "FilterExpressionNode",
-          joinType: "OR",
-        },
-      },
-    });
-
-    const result = builder(qb);
-
-    return new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        filterExpression: {
-          ...this.#props.node.filterExpression,
-          expressions: this.#props.node.filterExpression.expressions.concat(
-            result._getNode().filterExpression
-          ),
-        },
-      },
-    });
   }
 
   scanIndexForward(
@@ -392,10 +445,17 @@ export class QueryQueryBuilder<
         // problems with using reserved words.
         res += `${expr.key} ${expr.operation} ${attributeValue}`;
         filterExpressionAttributeValues.set(attributeValue, expr.value);
-      } else {
+      } else if (expr.kind === "FilterExpressionNode") {
         res += "(";
         res += this.compileFilterExpression(
           expr,
+          filterExpressionAttributeValues
+        );
+        res += ")";
+      } else if (expr.kind === "FilterExpressionNotExpression") {
+        res += "NOT (";
+        res += this.compileFilterExpression(
+          expr.expr,
           filterExpressionAttributeValues
         );
         res += ")";

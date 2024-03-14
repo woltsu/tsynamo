@@ -152,7 +152,7 @@ describe("tsynamo", () => {
         .keyCondition("userId", "=", "123")
         .keyCondition("dataTimestamp", "<", 888)
         .filterExpression("somethingElse", "<", 2)
-        .orNestedFilterExpression((qb) =>
+        .orFilterExpression((qb) =>
           qb
             .filterExpression("someBoolean", "=", true)
             .filterExpression("somethingElse", "=", 2)
