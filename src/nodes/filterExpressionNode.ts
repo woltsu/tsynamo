@@ -1,15 +1,6 @@
-import { BetweenConditionExpression } from "./betweenConditionExpression";
-import { FilterExpressionComparatorExpressions } from "./filterExpressionComparatorExpression";
-import { FilterExpressionNotExpression } from "./filterExpressionNotExpression";
-import { JoinType } from "./operationNode";
+import { FilterExpressionJoinTypeNode } from "./filterExpressionJoinTypeNode";
 
 export type FilterExpressionNode = {
   readonly kind: "FilterExpressionNode";
-  readonly expressions: (
-    | FilterExpressionNode
-    | FilterExpressionComparatorExpressions
-    | FilterExpressionNotExpression
-    | BetweenConditionExpression
-  )[];
-  readonly joinType?: JoinType;
+  readonly expressions: FilterExpressionJoinTypeNode[];
 };

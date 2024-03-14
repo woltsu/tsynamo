@@ -18,6 +18,7 @@ import {
   StripKeys,
 } from "../typeHelpers";
 import { FilterExpressionNotExpression } from "../nodes/filterExpressionNotExpression";
+import { FilterExpressionJoinTypeNode } from "../nodes/filterExpressionJoinTypeNode";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
@@ -324,10 +325,13 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "BetweenConditionExpression",
-              key,
-              left,
-              right,
+              kind: "FilterExpressionJoinTypeNode",
+              expr: {
+                kind: "BetweenConditionExpression",
+                key,
+                left,
+                right,
+              },
               joinType: "AND",
             }),
           },
@@ -349,11 +353,14 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionComparatorExpressions",
+              kind: "FilterExpressionJoinTypeNode",
               joinType: "AND",
-              key,
-              operation,
-              value,
+              expr: {
+                kind: "FilterExpressionComparatorExpressions",
+                key,
+                operation,
+                value,
+              },
             }),
           },
         },
@@ -376,20 +383,27 @@ export class QueryQueryBuilder<
           filterExpression: {
             expressions: [],
             kind: "FilterExpressionNode",
-            joinType: "AND",
           },
         },
       });
 
       const result = builder(qb);
-      let resultNode: FilterExpressionNode | FilterExpressionNotExpression =
-        result._getNode().filterExpression;
+
+      const { filterExpression } = result._getNode();
+
+      let resultNode: FilterExpressionJoinTypeNode = {
+        kind: "FilterExpressionJoinTypeNode",
+        expr: filterExpression,
+        joinType: "AND",
+      };
 
       if (args[0] === "NOT") {
         resultNode = {
-          kind: "FilterExpressionNotExpression",
-          expr: { ...resultNode },
-          joinType: "AND",
+          ...resultNode,
+          expr: {
+            kind: "FilterExpressionNotExpression",
+            expr: filterExpression,
+          },
         };
       }
 
@@ -452,10 +466,13 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "BetweenConditionExpression",
-              key,
-              left,
-              right,
+              kind: "FilterExpressionJoinTypeNode",
+              expr: {
+                kind: "BetweenConditionExpression",
+                key,
+                left,
+                right,
+              },
               joinType: "OR",
             }),
           },
@@ -477,11 +494,14 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionComparatorExpressions",
+              kind: "FilterExpressionJoinTypeNode",
+              expr: {
+                kind: "FilterExpressionComparatorExpressions",
+                key,
+                operation,
+                value,
+              },
               joinType: "OR",
-              key,
-              operation,
-              value,
             }),
           },
         },
@@ -504,20 +524,26 @@ export class QueryQueryBuilder<
           filterExpression: {
             expressions: [],
             kind: "FilterExpressionNode",
-            joinType: "OR",
           },
         },
       });
 
       const result = builder(qb);
-      let resultNode: FilterExpressionNode | FilterExpressionNotExpression =
-        result._getNode().filterExpression;
+      const { filterExpression } = result._getNode();
+
+      let resultNode: FilterExpressionJoinTypeNode = {
+        kind: "FilterExpressionJoinTypeNode",
+        expr: filterExpression,
+        joinType: "OR",
+      };
 
       if (args[0] === "NOT") {
         resultNode = {
-          kind: "FilterExpressionNotExpression",
-          expr: { ...resultNode },
-          joinType: "OR",
+          ...resultNode,
+          expr: {
+            kind: "FilterExpressionNotExpression",
+            expr: filterExpression,
+          },
         };
       }
 
@@ -602,42 +628,68 @@ export class QueryQueryBuilder<
     filterExpressionAttributeValues: Map<string, unknown>
   ) => {
     let res = "";
-    const offset = filterExpressionAttributeValues.size;
 
-    expression.expressions.forEach((expr, i) => {
+    expression.expressions.forEach((joinNode, i) => {
       if (i !== 0) {
-        res += ` ${expr.joinType} `;
+        res += ` ${joinNode.joinType} `;
       }
 
-      const attributeValue = `:filterExpressionValue${i + offset}`;
-      if (expr.kind === "FilterExpressionComparatorExpressions") {
-        // TODO: Instead of expr.key, use AttributeNames here to avoid
-        // problems with using reserved words.
-        res += `${expr.key} ${expr.operation} ${attributeValue}`;
-        filterExpressionAttributeValues.set(attributeValue, expr.value);
-      } else if (expr.kind === "FilterExpressionNode") {
+      res += this.compileFilterExpressionJoinNodes(
+        joinNode,
+        filterExpressionAttributeValues
+      );
+    });
+
+    return res;
+  };
+
+  compileFilterExpressionJoinNodes = (
+    { expr }: FilterExpressionJoinTypeNode,
+    filterExpressionAttributeValues: Map<string, unknown>
+  ) => {
+    let res = "";
+    const offset = filterExpressionAttributeValues.size;
+    const attributeValue = `:filterExpressionValue${offset}`;
+
+    switch (expr.kind) {
+      case "FilterExpressionNode": {
         res += "(";
         res += this.compileFilterExpression(
           expr,
           filterExpressionAttributeValues
         );
         res += ")";
-      } else if (expr.kind === "FilterExpressionNotExpression") {
+        break;
+      }
+
+      case "FilterExpressionComparatorExpressions": {
+        // TODO: Instead of expr.key, use AttributeNames here to avoid
+        // problems with using reserved words.
+        res += `${expr.key} ${expr.operation} ${attributeValue}`;
+        filterExpressionAttributeValues.set(attributeValue, expr.value);
+        break;
+      }
+
+      case "FilterExpressionNotExpression": {
         res += "NOT (";
         res += this.compileFilterExpression(
           expr.expr,
           filterExpressionAttributeValues
         );
         res += ")";
-      } else if (expr.kind === "BetweenConditionExpression") {
+        break;
+      }
+
+      case "BetweenConditionExpression": {
         res += `${expr.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
         filterExpressionAttributeValues.set(`${attributeValue}left`, expr.left);
         filterExpressionAttributeValues.set(
           `${attributeValue}right`,
           expr.right
         );
+        break;
       }
-    });
+    }
 
     return res;
   };
