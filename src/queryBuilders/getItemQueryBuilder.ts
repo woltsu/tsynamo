@@ -1,6 +1,7 @@
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { GetNode } from "../nodes/getNode";
 import {
+  DeepPartial,
   PickPk,
   PickSkRequired,
   SelectAttributes,
@@ -18,7 +19,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     attributes: A
   ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
-  execute(): Promise<StripKeys<O> | undefined>;
+  execute(): Promise<StripKeys<DeepPartial<O>> | undefined>;
 }
 
 export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
@@ -73,17 +74,18 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     });
   }
 
-  execute = async (): Promise<StripKeys<O> | undefined> => {
+  execute = async (): Promise<StripKeys<DeepPartial<O>> | undefined> => {
     const command = new GetCommand({
       TableName: this.#props.node.table?.table,
       Key: this.#props.node.keys?.keys,
       ConsistentRead: this.#props.node.consistentRead?.enabled,
+      // TODO: Use ProjectionExpression instead
       AttributesToGet: this.#props.node.attributes?.attributes,
     });
 
     const item = await this.#props.ddbClient.send(command);
 
-    return (item.Item as StripKeys<O>) ?? undefined;
+    return (item.Item as StripKeys<DeepPartial<O>>) ?? undefined;
   };
 }
 

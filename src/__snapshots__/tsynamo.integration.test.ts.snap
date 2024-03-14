@@ -1,0 +1,322 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tsynamo > query > handles a FilterExpression that uses attribute_exists and attribute_not_exists 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a FilterExpression that uses attribute_exists and attribute_not_exists 2`] = `
+[
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a FilterExpression that uses begins_with 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a FilterExpression that uses begins_with 2`] = `
+[
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a KeyCondition with BETWEEN expression 1`] = `
+[
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a KeyCondition with begins_with function 1`] = `
+[
+  {
+    "someBoolean": true,
+    "somethingElse": -5,
+    "stringTimestamp": "111",
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a BETWEEN FilterExpression 1`] = `
+[
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a BETWEEN FilterExpression 2`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a FilterExpression 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a NOT FilterExpression 1`] = `
+[
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a NOT FilterExpression 2`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a nested FilterExpression 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a simple KeyCondition 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with multiple expressions 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles conditions on nested keys 1`] = `
+[
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;

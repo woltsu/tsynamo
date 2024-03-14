@@ -13,7 +13,17 @@ import { Tsynamo } from "./index";
 interface DDB {
   myTable: {
     userId: PartitionKey<string>;
-    timestamp: SortKey<string>;
+    dataTimestamp: SortKey<number>;
+    somethingElse: number;
+    someBoolean: boolean;
+    nested: {
+      nestedString: number;
+      nestedBoolean: boolean;
+    };
+  };
+  myOtherTable: {
+    userId: PartitionKey<string>;
+    stringTimestamp: SortKey<string>;
     somethingElse: number;
     someBoolean: boolean;
   };
@@ -62,7 +72,7 @@ describe("tsynamo", () => {
         .getItemFrom("myTable")
         .keys({
           userId: TEST_ITEM_2.userId,
-          timestamp: TEST_ITEM_2.timestamp,
+          dataTimestamp: TEST_ITEM_2.dataTimestamp,
         })
         .execute();
 
@@ -74,7 +84,7 @@ describe("tsynamo", () => {
         .getItemFrom("myTable")
         .keys({
           userId: TEST_ITEM_1.userId,
-          timestamp: TEST_ITEM_1.timestamp,
+          dataTimestamp: TEST_ITEM_1.dataTimestamp,
         })
         .consistentRead(true)
         .attributes(["somethingElse", "someBoolean"])
@@ -85,58 +95,301 @@ describe("tsynamo", () => {
       expect(Object.keys(data!).length).toBe(2);
     });
   });
+
+  describe("query", () => {
+    it("handles a query with a simple KeyCondition", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", TEST_ITEM_1.userId)
+        .execute();
+
+      expect(data?.length).toBe(4);
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a KeyCondition with BETWEEN expression", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .keyCondition("dataTimestamp", "BETWEEN", 150, 500)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a KeyCondition with begins_with function", async () => {
+      let data = await tsynamoClient
+        .query("myOtherTable")
+        .keyCondition("userId", "=", "123")
+        .keyCondition("stringTimestamp", "begins_with", "11")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a query with a FilterExpression", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", TEST_ITEM_1.userId)
+        .filterExpression("someBoolean", "=", true)
+        .execute();
+
+      expect(data?.length).toBe(2);
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a query with multiple expressions", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .keyCondition("dataTimestamp", "<", 888)
+        .filterExpression("someBoolean", "=", true)
+        .filterExpression("somethingElse", "<", 0)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a query with a nested FilterExpression", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .keyCondition("dataTimestamp", "<", 888)
+        .filterExpression("somethingElse", "<", 2)
+        .orFilterExpression((qb) =>
+          qb
+            .filterExpression("someBoolean", "=", true)
+            .filterExpression("somethingElse", "=", 2)
+        )
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a query with a NOT FilterExpression", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("NOT", (qb) =>
+          qb.filterExpression("someBoolean", "=", true)
+        )
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("someBoolean", "=", true)
+        .orFilterExpression("NOT", (qb) =>
+          qb.filterExpression("somethingElse", "=", 0)
+        )
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a query with a BETWEEN FilterExpression", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("somethingElse", "BETWEEN", 0, 10)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("someBoolean", "=", true)
+        .orFilterExpression("somethingElse", "BETWEEN", 9, 10)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles conditions on nested keys", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedBoolean", "=", true)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a FilterExpression that uses attribute_exists and attribute_not_exists", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "attribute_exists")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "attribute_not_exists")
+        .attributes(["userId"])
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
+    it("handles a FilterExpression that uses begins_with", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "begins_with", "k")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("nested.nestedString", "begins_with", "ke")
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+  });
 });
 
 const TEST_ITEM_1 = {
   userId: "123",
-  timestamp: "222",
+  dataTimestamp: 222,
   somethingElse: 2,
   someBoolean: true,
 };
 
 const TEST_ITEM_2 = {
   userId: "321",
-  timestamp: "333",
+  dataTimestamp: 333,
   somethingElse: 3,
   someBoolean: false,
+};
+
+const TEST_ITEM_3 = {
+  userId: "123",
+  dataTimestamp: 333,
+  somethingElse: 10,
+  someBoolean: false,
+};
+
+const TEST_ITEM_4 = {
+  userId: "123",
+  dataTimestamp: 999,
+  somethingElse: 0,
+  someBoolean: false,
+};
+
+const TEST_ITEM_5 = {
+  userId: "123",
+  dataTimestamp: 111,
+  somethingElse: -5,
+  someBoolean: true,
+  nested: {
+    nestedString: "koy",
+    nestedBoolean: false,
+  },
+};
+
+const TEST_ITEM_6 = {
+  userId: "123",
+  stringTimestamp: "111",
+  somethingElse: -5,
+  someBoolean: true,
+};
+
+const TEST_ITEM_7 = {
+  userId: "123",
+  stringTimestamp: "123",
+  somethingElse: -5,
+  someBoolean: true,
+};
+
+const TEST_ITEM_8 = {
+  userId: "123",
+  dataTimestamp: 999,
+  somethingElse: 0,
+  someBoolean: false,
+  nested: {
+    nestedString: "key",
+    nestedBoolean: true,
+  },
 };
 
 /**
  * Re-create a DynamoDB table called "myTable" with some test data.
  */
 const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
-  const deleteTableCommand = new DeleteTableCommand({
-    TableName: "myTable",
-  });
-
   try {
-    await client.send(deleteTableCommand);
+    await client.send(
+      new DeleteTableCommand({
+        TableName: "myTable",
+      })
+    );
   } catch (e: unknown) {
     if (!(e instanceof ResourceNotFoundException)) {
       throw e;
     }
   }
 
-  const createTableCommand = new CreateTableCommand({
-    TableName: "myTable",
-    KeySchema: [
-      { AttributeName: "userId", KeyType: "HASH" },
-      { AttributeName: "timestamp", KeyType: "RANGE" },
-    ],
-    AttributeDefinitions: [
-      {
-        AttributeName: "userId",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "timestamp",
-        AttributeType: "S",
-      },
-    ],
-    BillingMode: "PAY_PER_REQUEST",
-  });
+  try {
+    await client.send(
+      new DeleteTableCommand({
+        TableName: "myOtherTable",
+      })
+    );
+  } catch (e: unknown) {
+    if (!(e instanceof ResourceNotFoundException)) {
+      throw e;
+    }
+  }
 
-  await client.send(createTableCommand);
+  await client.send(
+    new CreateTableCommand({
+      TableName: "myTable",
+      KeySchema: [
+        { AttributeName: "userId", KeyType: "HASH" },
+        { AttributeName: "dataTimestamp", KeyType: "RANGE" },
+      ],
+      AttributeDefinitions: [
+        {
+          AttributeName: "userId",
+          AttributeType: "S",
+        },
+        {
+          AttributeName: "dataTimestamp",
+          AttributeType: "N",
+        },
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    })
+  );
+
+  await client.send(
+    new CreateTableCommand({
+      TableName: "myOtherTable",
+      KeySchema: [
+        { AttributeName: "userId", KeyType: "HASH" },
+        { AttributeName: "stringTimestamp", KeyType: "RANGE" },
+      ],
+      AttributeDefinitions: [
+        {
+          AttributeName: "userId",
+          AttributeType: "S",
+        },
+        {
+          AttributeName: "stringTimestamp",
+          AttributeType: "S",
+        },
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    })
+  );
 
   await client.send(
     new PutCommand({
@@ -149,6 +402,48 @@ const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
     new PutCommand({
       TableName: "myTable",
       Item: TEST_ITEM_2,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myTable",
+      Item: TEST_ITEM_3,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myTable",
+      Item: TEST_ITEM_4,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myTable",
+      Item: TEST_ITEM_5,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myOtherTable",
+      Item: TEST_ITEM_6,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myOtherTable",
+      Item: TEST_ITEM_7,
+    })
+  );
+
+  await client.send(
+    new PutCommand({
+      TableName: "myTable",
+      Item: TEST_ITEM_8,
     })
   );
 };
