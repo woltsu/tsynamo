@@ -1,8 +1,9 @@
-import { ComparisonOperator } from "./operationNode";
+import { BetweenConditionExpression } from "./betweenConditionExpression";
+import { KeyConditionComparatorExpression } from "./keyConditionComparatorExpression";
 
 export type KeyConditionNode = {
   readonly kind: "KeyConditionNode";
-  readonly key: string;
-  readonly operation: ComparisonOperator;
-  readonly value: unknown;
+  readonly operation:
+    | KeyConditionComparatorExpression
+    | BetweenConditionExpression;
 };

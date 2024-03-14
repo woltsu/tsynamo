@@ -13,7 +13,7 @@ import { Tsynamo } from "./index";
 interface DDB {
   myTable: {
     userId: PartitionKey<string>;
-    dataTimestamp: SortKey<string>;
+    dataTimestamp: SortKey<number>;
     somethingElse: number;
     someBoolean: boolean;
   };
@@ -97,6 +97,16 @@ describe("tsynamo", () => {
       expect(data).toMatchSnapshot();
     });
 
+    it("handles a KeyCondition with BETWEEN expression", async () => {
+      const data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .keyCondition("dataTimestamp", "BETWEEN", 150, 500)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
+
     it("handles a query with a FilterExpression", async () => {
       const data = await tsynamoClient
         .query("myTable")
@@ -112,7 +122,7 @@ describe("tsynamo", () => {
       const data = await tsynamoClient
         .query("myTable")
         .keyCondition("userId", "=", "123")
-        .keyCondition("dataTimestamp", "<", "888")
+        .keyCondition("dataTimestamp", "<", 888)
         .filterExpression("someBoolean", "=", true)
         .filterExpression("somethingElse", "<", 0)
         .execute();
@@ -124,7 +134,7 @@ describe("tsynamo", () => {
       const data = await tsynamoClient
         .query("myTable")
         .keyCondition("userId", "=", "123")
-        .keyCondition("dataTimestamp", "<", "888")
+        .keyCondition("dataTimestamp", "<", 888)
         .filterExpression("somethingElse", "<", 2)
         .orNestedFilterExpression((qb) =>
           qb
@@ -140,35 +150,35 @@ describe("tsynamo", () => {
 
 const TEST_ITEM_1 = {
   userId: "123",
-  dataTimestamp: "222",
+  dataTimestamp: 222,
   somethingElse: 2,
   someBoolean: true,
 };
 
 const TEST_ITEM_2 = {
   userId: "321",
-  dataTimestamp: "333",
+  dataTimestamp: 333,
   somethingElse: 3,
   someBoolean: false,
 };
 
 const TEST_ITEM_3 = {
   userId: "123",
-  dataTimestamp: "333",
+  dataTimestamp: 333,
   somethingElse: 10,
   someBoolean: false,
 };
 
 const TEST_ITEM_4 = {
   userId: "123",
-  dataTimestamp: "999",
+  dataTimestamp: 999,
   somethingElse: 0,
   someBoolean: false,
 };
 
 const TEST_ITEM_5 = {
   userId: "123",
-  dataTimestamp: "111",
+  dataTimestamp: 111,
   somethingElse: -5,
   someBoolean: true,
 };
@@ -202,7 +212,7 @@ const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
       },
       {
         AttributeName: "dataTimestamp",
-        AttributeType: "S",
+        AttributeType: "N",
       },
     ],
     BillingMode: "PAY_PER_REQUEST",

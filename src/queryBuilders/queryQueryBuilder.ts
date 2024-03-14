@@ -1,6 +1,10 @@
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FilterExpressionNode } from "../nodes/filterExpressionNode";
-import { ComparisonOperator } from "../nodes/operationNode";
+import {
+  BetweenExpression,
+  ComparisonOperator,
+  FilterConditionComparators,
+} from "../nodes/operationNode";
 import { QueryNode } from "../nodes/queryNode";
 import {
   PickAllKeys,
@@ -11,6 +15,13 @@ import {
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<StripKeys<O>[] | undefined>;
+
+  keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
+    key: Key,
+    expr: BetweenExpression,
+    left: StripKeys<DDB[Table][Key]>,
+    right: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
     key: Key,
@@ -107,28 +118,61 @@ export class QueryQueryBuilder<
 
   // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.KeyConditionExpressions.html
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
-    key: Key,
-    operation: ComparisonOperator,
-    val: StripKeys<DDB[Table][Key]>
+    ...args:
+      | [
+          key: Key,
+          operation: ComparisonOperator,
+          val: StripKeys<DDB[Table][Key]>
+        ]
+      | [
+          key: Key,
+          expr: BetweenExpression,
+          left: StripKeys<DDB[Table][Key]>,
+          right: StripKeys<DDB[Table][Key]>
+        ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    return new QueryQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        keyConditions: this.#props.node.keyConditions.concat({
-          kind: "KeyConditionNode",
-          key,
-          operation,
-          value: val,
-        }),
-      },
-    });
+    if (args[1] === "BETWEEN") {
+      const [key, expr, left, right] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          keyConditions: this.#props.node.keyConditions.concat({
+            kind: "KeyConditionNode",
+            operation: {
+              kind: "BetweenConditionExpression",
+              key,
+              left,
+              right,
+            },
+          }),
+        },
+      });
+    } else {
+      const [key, operation, value] = args;
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          keyConditions: this.#props.node.keyConditions.concat({
+            kind: "KeyConditionNode",
+            operation: {
+              kind: "KeyConditionComparatorExpression",
+              operation,
+              key,
+              value,
+            },
+          }),
+        },
+      });
+    }
   }
 
   // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: FilterConditionComparators,
     value: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     return new QueryQueryBuilder<DDB, Table, O>({
@@ -151,7 +195,7 @@ export class QueryQueryBuilder<
 
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     key: Key,
-    operation: ComparisonOperator,
+    operation: FilterConditionComparators,
     value: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     return new QueryQueryBuilder<DDB, Table, O>({
@@ -339,10 +383,25 @@ export class QueryQueryBuilder<
       }
 
       const attributeValue = `:keyConditionValue${i}`;
-      // TODO: Instead of expr.key, use AttributeNames here to avoid
-      // problems with using reserved words.
-      res += `${keyCondition.key} ${keyCondition.operation} ${attributeValue}`;
-      keyConditionAttributeValues.set(attributeValue, keyCondition.value);
+      if (keyCondition.operation.kind === "KeyConditionComparatorExpression") {
+        // TODO: Instead of expr.key, use AttributeNames here to avoid
+        // problems with using reserved words.
+        res += `${keyCondition.operation.key} ${keyCondition.operation.operation} ${attributeValue}`;
+        keyConditionAttributeValues.set(
+          attributeValue,
+          keyCondition.operation.value
+        );
+      } else if (keyCondition.operation.kind === "BetweenConditionExpression") {
+        res += `${keyCondition.operation.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
+        keyConditionAttributeValues.set(
+          `${attributeValue}left`,
+          keyCondition.operation.left
+        );
+        keyConditionAttributeValues.set(
+          `${attributeValue}right`,
+          keyCondition.operation.right
+        );
+      }
     });
 
     return res;

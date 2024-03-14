@@ -1,15 +1,32 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`tsynamo > query > handles a KeyCondition with BETWEEN expression 1`] = `
+[
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+]
+`;
+
 exports[`tsynamo > query > handles a query with a FilterExpression 1`] = `
 [
   {
-    "dataTimestamp": "111",
+    "dataTimestamp": 111,
     "someBoolean": true,
     "somethingElse": -5,
     "userId": "123",
   },
   {
-    "dataTimestamp": "222",
+    "dataTimestamp": 222,
     "someBoolean": true,
     "somethingElse": 2,
     "userId": "123",
@@ -20,13 +37,13 @@ exports[`tsynamo > query > handles a query with a FilterExpression 1`] = `
 exports[`tsynamo > query > handles a query with a nested FilterExpression 1`] = `
 [
   {
-    "dataTimestamp": "111",
+    "dataTimestamp": 111,
     "someBoolean": true,
     "somethingElse": -5,
     "userId": "123",
   },
   {
-    "dataTimestamp": "222",
+    "dataTimestamp": 222,
     "someBoolean": true,
     "somethingElse": 2,
     "userId": "123",
@@ -37,25 +54,25 @@ exports[`tsynamo > query > handles a query with a nested FilterExpression 1`] = 
 exports[`tsynamo > query > handles a query with a simple KeyCondition 1`] = `
 [
   {
-    "dataTimestamp": "111",
+    "dataTimestamp": 111,
     "someBoolean": true,
     "somethingElse": -5,
     "userId": "123",
   },
   {
-    "dataTimestamp": "222",
+    "dataTimestamp": 222,
     "someBoolean": true,
     "somethingElse": 2,
     "userId": "123",
   },
   {
-    "dataTimestamp": "333",
+    "dataTimestamp": 333,
     "someBoolean": false,
     "somethingElse": 10,
     "userId": "123",
   },
   {
-    "dataTimestamp": "999",
+    "dataTimestamp": 999,
     "someBoolean": false,
     "somethingElse": 0,
     "userId": "123",
@@ -66,7 +83,7 @@ exports[`tsynamo > query > handles a query with a simple KeyCondition 1`] = `
 exports[`tsynamo > query > handles a query with multiple expressions 1`] = `
 [
   {
-    "dataTimestamp": "111",
+    "dataTimestamp": 111,
     "someBoolean": true,
     "somethingElse": -5,
     "userId": "123",
