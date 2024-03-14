@@ -24,7 +24,7 @@ yarn add tsynamo
 
 ## Creating a Tsynamo client
 
-First, you need to define the types for your DynamoDB tables:
+1. Define the types for your DynamoDB tables:
 
 ```ts
 import { PartitionKey, SortKey } from "tsynamo";
@@ -41,7 +41,7 @@ export interface DDB {
 
 > Notice that you can have multiple tables in the DDB schema. You can also have nested attributes in the table.
 
-Then, you need to create the DynamoDB Document Client:
+2. Create a DynamoDB document client:
 
 ```ts
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -56,7 +56,7 @@ const ddbClient = DynamoDBDocumentClient.from(
 
 > The document client must come from @aws-sdk/lib-dynamodb!
 
-Finally, create a Tsynamo client with the defined DynamoDB types and client:
+3. Create a Tsynamo client with the defined DynamoDB types and client:
 
 ```ts
 const tsynamoClient = new Tsynamo<DDB>({
