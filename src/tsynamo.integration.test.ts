@@ -184,6 +184,25 @@ describe("tsynamo", () => {
 
       expect(data).toMatchSnapshot();
     });
+
+    it("handles a query with a BETWEEN FilterExpression", async () => {
+      let data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("somethingElse", "BETWEEN", 0, 10)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+
+      data = await tsynamoClient
+        .query("myTable")
+        .keyCondition("userId", "=", "123")
+        .filterExpression("someBoolean", "=", true)
+        .orFilterExpression("somethingElse", "BETWEEN", 9, 10)
+        .execute();
+
+      expect(data).toMatchSnapshot();
+    });
   });
 });
 

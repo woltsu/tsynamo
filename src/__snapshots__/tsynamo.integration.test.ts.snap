@@ -28,6 +28,52 @@ exports[`tsynamo > query > handles a KeyCondition with begins_with function 1`] 
 ]
 `;
 
+exports[`tsynamo > query > handles a query with a BETWEEN FilterExpression 1`] = `
+[
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`tsynamo > query > handles a query with a BETWEEN FilterExpression 2`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+]
+`;
+
 exports[`tsynamo > query > handles a query with a FilterExpression 1`] = `
 [
   {

@@ -55,6 +55,13 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    key: Key,
+    expr: BetweenExpression,
+    left: StripKeys<DDB[Table][Key]>,
+    right: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
     not: NotExpression,
     builder: (
@@ -75,6 +82,13 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    key: Key,
+    expr: BetweenExpression,
+    left: StripKeys<DDB[Table][Key]>,
+    right: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]>>(
@@ -122,6 +136,13 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    key: Key,
+    expr: BetweenExpression,
+    left: StripKeys<DDB[Table][Key]>,
+    right: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  filterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
     not: NotExpression,
     builder: (
       qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
@@ -141,6 +162,20 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
     key: Key,
     operation: FilterConditionComparators,
     val: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression<Key extends keyof PickAllKeys<DDB[Table]> & string>(
+    key: Key,
+    expr: BetweenExpression,
+    left: StripKeys<DDB[Table][Key]>,
+    right: StripKeys<DDB[Table][Key]>
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression<Key extends keyof PickNonKeys<DDB[Table]> & string>(
+    not: NotExpression,
+    builder: (
+      qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
+    ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   orFilterExpression(
@@ -252,6 +287,12 @@ export class QueryQueryBuilder<
           value: StripKeys<DDB[Table][Key]>
         ]
       | [
+          key: Key,
+          expr: BetweenExpression,
+          left: StripKeys<DDB[Table][Key]>,
+          right: StripKeys<DDB[Table][Key]>
+        ]
+      | [
           not: NotExpression,
           builder: (
             qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
@@ -271,7 +312,26 @@ export class QueryQueryBuilder<
           ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
         ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    if (
+    if (args[1] === "BETWEEN") {
+      const [key, expr, left, right] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "BetweenConditionExpression",
+              key,
+              left,
+              right,
+              joinType: "AND",
+            }),
+          },
+        },
+      });
+    } else if (
       typeof args[0] !== "function" &&
       args[0] !== "NOT" &&
       typeof args[1] !== "function" &&
@@ -355,6 +415,12 @@ export class QueryQueryBuilder<
           value: StripKeys<DDB[Table][Key]>
         ]
       | [
+          key: Key,
+          expr: BetweenExpression,
+          left: StripKeys<DDB[Table][Key]>,
+          right: StripKeys<DDB[Table][Key]>
+        ]
+      | [
           not: NotExpression,
           builder: (
             qb: QueryQueryBuilderInterfaceWithOnlyFilterOperations<
@@ -374,7 +440,26 @@ export class QueryQueryBuilder<
           ) => QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>
         ]
   ): QueryQueryBuilderInterface<DDB, Table, O> {
-    if (
+    if (args[1] === "BETWEEN") {
+      const [key, expr, left, right] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "BetweenConditionExpression",
+              key,
+              left,
+              right,
+              joinType: "OR",
+            }),
+          },
+        },
+      });
+    } else if (
       typeof args[0] !== "function" &&
       args[0] !== "NOT" &&
       typeof args[1] !== "function" &&
@@ -522,8 +607,8 @@ export class QueryQueryBuilder<
         res += ` ${expr.joinType} `;
       }
 
+      const attributeValue = `:filterExpressionValue${i + offset}`;
       if (expr.kind === "FilterExpressionComparatorExpressions") {
-        const attributeValue = `:filterExpressionValue${i + offset}`;
         // TODO: Instead of expr.key, use AttributeNames here to avoid
         // problems with using reserved words.
         res += `${expr.key} ${expr.operation} ${attributeValue}`;
@@ -542,6 +627,13 @@ export class QueryQueryBuilder<
           filterExpressionAttributeValues
         );
         res += ")";
+      } else if (expr.kind === "BetweenConditionExpression") {
+        res += `${expr.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
+        filterExpressionAttributeValues.set(`${attributeValue}left`, expr.left);
+        filterExpressionAttributeValues.set(
+          `${attributeValue}right`,
+          expr.right
+        );
       }
     });
 
