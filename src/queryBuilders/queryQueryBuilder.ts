@@ -1,4 +1,6 @@
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { AttributeExistsFunctionExpression } from "../nodes/attributeExistsFunctionExpression";
+import { AttributeNotExistsFunctionExpression } from "../nodes/attributeNotExistsFunctionExpression";
 import {
   FilterExpressionJoinTypeNode,
   JoinType,
@@ -13,6 +15,7 @@ import {
 } from "../nodes/operands";
 import { QueryNode } from "../nodes/queryNode";
 import {
+  DeepPartial,
   GetFromPath,
   ObjectKeyPaths,
   PickAllKeys,
@@ -21,11 +24,9 @@ import {
   SelectAttributes,
   StripKeys,
 } from "../typeHelpers";
-import { AttributeExistsFunctionExpression } from "../nodes/attributeExistsFunctionExpression";
-import { AttributeNotExistsFunctionExpression } from "../nodes/attributeNotExistsFunctionExpression";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
-  execute(): Promise<StripKeys<O>[] | undefined>;
+  execute(): Promise<StripKeys<DeepPartial<O>>[] | undefined>;
 
   /**
    * keyCondition methods
@@ -539,7 +540,7 @@ export class QueryQueryBuilder<
   attributes<A extends readonly (keyof DDB[Table])[] & string[]>(
     attributes: A
   ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>> {
-    return new QueryQueryBuilder<DDB, Table, O>({
+    return new QueryQueryBuilder({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -619,12 +620,12 @@ export class QueryQueryBuilder<
       }
 
       case "AttributeExistsFunctionExpression": {
-        res += `attribute_exists(${expr.key})`
+        res += `attribute_exists(${expr.key})`;
         break;
       }
 
       case "AttributeNotExistsFunctionExpression": {
-        res += `attribute_not_exists(${expr.key})`
+        res += `attribute_not_exists(${expr.key})`;
         break;
       }
     }
@@ -674,7 +675,7 @@ export class QueryQueryBuilder<
     return res;
   };
 
-  execute = async (): Promise<StripKeys<O>[] | undefined> => {
+  execute = async (): Promise<StripKeys<DeepPartial<O>>[] | undefined> => {
     const keyConditionAttributeValues = new Map();
     const filterExpressionAttributeValues = new Map();
 
@@ -704,7 +705,7 @@ export class QueryQueryBuilder<
 
     const result = await this.#props.ddbClient.send(command);
 
-    return (result.Items as StripKeys<O>[]) ?? undefined;
+    return (result.Items as StripKeys<DeepPartial<O>>[]) ?? undefined;
   };
 }
 

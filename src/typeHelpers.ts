@@ -66,10 +66,13 @@ export type SelectAttributes<
   [A in Attributes[number]]: Table[A];
 };
 
-export type IsNotSpecificString<
-  T extends string,
-  SpecificString extends string
-> = T extends SpecificString ? never : T;
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T[P] extends object
+    ? DeepPartial<T[P]>
+    : T[P];
+};
 
 // We first need to parse the path string into a list of Properties,
 // Then, we recursively access Properties on the input object.
