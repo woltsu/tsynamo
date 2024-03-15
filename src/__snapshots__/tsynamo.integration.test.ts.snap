@@ -28,15 +28,9 @@ exports[`tsynamo > query > handles a FilterExpression that uses attribute_exists
 exports[`tsynamo > query > handles a FilterExpression that uses attribute_exists and attribute_not_exists 2`] = `
 [
   {
-    "dataTimestamp": 222,
-    "someBoolean": true,
-    "somethingElse": 2,
     "userId": "123",
   },
   {
-    "dataTimestamp": 333,
-    "someBoolean": false,
-    "somethingElse": 10,
     "userId": "123",
   },
 ]

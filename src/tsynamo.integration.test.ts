@@ -246,7 +246,7 @@ describe("tsynamo", () => {
         .query("myTable")
         .keyCondition("userId", "=", "123")
         .filterExpression("nested.nestedString", "attribute_not_exists")
-        .attributes(["userId"])
+        .attributes(["userId", "nested"])
         .execute();
 
       expect(data).toMatchSnapshot();

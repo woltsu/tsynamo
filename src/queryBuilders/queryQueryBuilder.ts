@@ -784,6 +784,7 @@ export class QueryQueryBuilder<
       },
       ScanIndexForward: this.#props.node.scanIndexForward?.enabled,
       ConsistentRead: this.#props.node.consistentRead?.enabled,
+      ProjectionExpression: this.#props.node.attributes?.attributes.join(", "),
     });
 
     const result = await this.#props.ddbClient.send(command);
