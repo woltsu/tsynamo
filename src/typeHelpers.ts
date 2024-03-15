@@ -65,24 +65,31 @@ export type SelectAttributesRaw<
 > = {
   [A in Attributes[number]]: Table[A];
 };
-
-type NestedValue<T, K extends string> = K extends `${infer First}.${infer Rest}`
-  ? First extends keyof T
-    ? { [k in Rest]: NestedValue<T[First], Rest> }
-    : never
-  : K extends keyof T
-  ? T[K]
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
   : never;
 
-// TODO make this Recursive
+type RecursiveSelectAttributes<Table, Properties> = Properties extends [
+  infer First,
+  ...infer Rest
+]
+  ? First extends keyof Table
+    ? { [key in First]: RecursiveSelectAttributes<Table[First], Rest> }
+    : never
+  : Table;
+
 export type SelectAttributes<
   Table,
   Attributes extends ReadonlyArray<string>
-> = {
-  [A in Attributes[number] as A extends `${infer First}.${infer _}`
-    ? First
-    : A]: NestedValue<Table, A>;
-};
+> = IntersectionToSingleObject<
+  UnionToIntersection<
+    RecursiveSelectAttributes<Table, ParsePath<Attributes[number]>>
+  >
+>;
+
+type a = ParsePath<"a.b[1].c" | "a.a.b">;
 
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
@@ -91,6 +98,9 @@ export type DeepPartial<T> = {
     ? DeepPartial<T[P]>
     : T[P];
 };
+type IntersectionToSingleObject<T> = T extends infer U
+  ? { [K in keyof U]: U[K] }
+  : never;
 
 // We first need to parse the path string into a list of Properties,
 // Then, we recursively access Properties on the input object.

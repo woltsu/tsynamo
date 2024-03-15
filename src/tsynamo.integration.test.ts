@@ -19,6 +19,9 @@ interface DDB {
     nested: {
       nestedString: number;
       nestedBoolean: boolean;
+      nestedNested: {
+        nestedNestedBoolean: boolean;
+      };
     };
   };
   myOtherTable: {
@@ -112,7 +115,23 @@ describe("tsynamo", () => {
       );
       expect(Object.keys(data!).length).toBe(2);
     });
-    it.todo("handles selecting nested attributes excessively deep");
+    it("handles selecting nested attributes excessively deep", async () => {
+      const data = await tsynamoClient
+        .getItemFrom("myTable")
+        .keys({
+          userId: TEST_ITEM_9.userId,
+          dataTimestamp: TEST_ITEM_9.dataTimestamp,
+        })
+        .consistentRead(true)
+        .attributes(["someBoolean", "nested.nestedNested.nestedNestedBoolean"])
+        .execute();
+
+      expect(data?.someBoolean).toBe(TEST_ITEM_9.someBoolean);
+      expect(data?.nested?.nestedNested?.nestedNestedBoolean).toBe(
+        TEST_ITEM_9.nested.nestedNested.nestedNestedBoolean
+      );
+      expect(Object.keys(data!).length).toBe(2);
+    });
     it.todo("handles selecting attributes from arrays");
 
     it("can't await instance directly", async () => {
@@ -139,7 +158,7 @@ describe("tsynamo", () => {
         .keyCondition("userId", "=", TEST_ITEM_1.userId)
         .execute();
 
-      expect(data?.length).toBe(4);
+      expect(data?.length).toBe(5);
       expect(data).toMatchSnapshot();
     });
 
@@ -356,6 +375,19 @@ const TEST_ITEM_8 = {
     nestedBoolean: true,
   },
 };
+const TEST_ITEM_9 = {
+  userId: "123",
+  dataTimestamp: 996,
+  somethingElse: -9,
+  someBoolean: false,
+  nested: {
+    nestedString: "llol",
+    nestedBoolean: true,
+    nestedNested: {
+      nestedNestedBoolean: true,
+    },
+  },
+};
 
 /**
  * Re-create a DynamoDB table called "myTable" with some test data.
@@ -480,6 +512,12 @@ const setupTestDatabase = async (client: DynamoDBDocumentClient) => {
     new PutCommand({
       TableName: "myTable",
       Item: TEST_ITEM_8,
+    })
+  );
+  await client.send(
+    new PutCommand({
+      TableName: "myTable",
+      Item: TEST_ITEM_9,
     })
   );
 };

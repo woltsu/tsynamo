@@ -13,6 +13,19 @@ exports[`tsynamo > query > handles a FilterExpression that uses attribute_exists
     "userId": "123",
   },
   {
+    "dataTimestamp": 996,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedNested": {
+        "nestedNestedBoolean": true,
+      },
+      "nestedString": "llol",
+    },
+    "someBoolean": false,
+    "somethingElse": -9,
+    "userId": "123",
+  },
+  {
     "dataTimestamp": 999,
     "nested": {
       "nestedBoolean": true,
@@ -188,6 +201,19 @@ exports[`tsynamo > query > handles a query with a NOT FilterExpression 1`] = `
     "userId": "123",
   },
   {
+    "dataTimestamp": 996,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedNested": {
+        "nestedNestedBoolean": true,
+      },
+      "nestedString": "llol",
+    },
+    "someBoolean": false,
+    "somethingElse": -9,
+    "userId": "123",
+  },
+  {
     "dataTimestamp": 999,
     "nested": {
       "nestedBoolean": true,
@@ -222,6 +248,19 @@ exports[`tsynamo > query > handles a query with a NOT FilterExpression 2`] = `
     "dataTimestamp": 333,
     "someBoolean": false,
     "somethingElse": 10,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 996,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedNested": {
+        "nestedNestedBoolean": true,
+      },
+      "nestedString": "llol",
+    },
+    "someBoolean": false,
+    "somethingElse": -9,
     "userId": "123",
   },
 ]
@@ -273,6 +312,19 @@ exports[`tsynamo > query > handles a query with a simple KeyCondition 1`] = `
     "userId": "123",
   },
   {
+    "dataTimestamp": 996,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedNested": {
+        "nestedNestedBoolean": true,
+      },
+      "nestedString": "llol",
+    },
+    "someBoolean": false,
+    "somethingElse": -9,
+    "userId": "123",
+  },
+  {
     "dataTimestamp": 999,
     "nested": {
       "nestedBoolean": true,
@@ -302,6 +354,19 @@ exports[`tsynamo > query > handles a query with multiple expressions 1`] = `
 
 exports[`tsynamo > query > handles conditions on nested keys 1`] = `
 [
+  {
+    "dataTimestamp": 996,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedNested": {
+        "nestedNestedBoolean": true,
+      },
+      "nestedString": "llol",
+    },
+    "someBoolean": false,
+    "somethingElse": -9,
+    "userId": "123",
+  },
   {
     "dataTimestamp": 999,
     "nested": {
