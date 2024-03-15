@@ -2,6 +2,7 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { GetNode } from "../nodes/getNode";
 import {
   DeepPartial,
+  ObjectFullPaths,
   PickPk,
   PickSkRequired,
   SelectAttributes,
@@ -16,7 +17,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
 
   consistentRead(enabled: boolean): GetQueryBuilderInterface<DDB, Table, O>;
 
-  attributes<A extends ReadonlyArray<keyof DDB[Table]> & string[]>(
+  attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
   ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
@@ -60,7 +61,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     });
   }
 
-  attributes<A extends readonly (keyof DDB[Table])[] & string[]>(
+  attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
   ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>> {
     return new GetQueryBuilder({
@@ -72,7 +73,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
           attributes,
         },
       },
-    });
+    }) as any;
   }
 
   execute = async (): Promise<StripKeys<DeepPartial<O>> | undefined> => {
@@ -80,8 +81,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
       TableName: this.#props.node.table?.table,
       Key: this.#props.node.keys?.keys,
       ConsistentRead: this.#props.node.consistentRead?.enabled,
-      // TODO: Use ProjectionExpression instead
-      AttributesToGet: this.#props.node.attributes?.attributes,
+      ProjectionExpression: this.#props.node.attributes?.attributes.join(", "),
     });
 
     const item = await this.#props.ddbClient.send(command);

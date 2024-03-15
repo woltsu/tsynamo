@@ -17,6 +17,7 @@ import { QueryNode } from "../nodes/queryNode";
 import {
   DeepPartial,
   GetFromPath,
+  ObjectFullPaths,
   ObjectKeyPaths,
   PickAllKeys,
   PickNonKeys,
@@ -161,7 +162,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
 
   consistentRead(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  attributes<A extends ReadonlyArray<keyof DDB[Table]> & string[]>(
+  attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
   ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
@@ -614,7 +615,7 @@ export class QueryQueryBuilder<
     });
   }
 
-  attributes<A extends readonly (keyof DDB[Table])[] & string[]>(
+  attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
   ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>> {
     return new QueryQueryBuilder({
@@ -626,7 +627,7 @@ export class QueryQueryBuilder<
           attributes,
         },
       },
-    });
+    }) as any;
   }
 
   compileFilterExpression = (
@@ -784,6 +785,7 @@ export class QueryQueryBuilder<
       },
       ScanIndexForward: this.#props.node.scanIndexForward?.enabled,
       ConsistentRead: this.#props.node.consistentRead?.enabled,
+      ProjectionExpression: this.#props.node.attributes?.attributes.join(", "),
     });
 
     const result = await this.#props.ddbClient.send(command);

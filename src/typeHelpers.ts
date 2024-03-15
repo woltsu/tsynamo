@@ -59,12 +59,35 @@ export type StripKeys<T> = T extends { _PK: true }
 /**
  * Returns a subset of a table's properties.
  */
-export type SelectAttributes<
+export type SelectAttributesRaw<
   Table,
   Attributes extends ReadonlyArray<keyof Table>
 > = {
   [A in Attributes[number]]: Table[A];
 };
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never;
+
+type RecursiveSelectAttributes<Table, Properties> = Properties extends [
+  infer First,
+  ...infer Rest
+]
+  ? First extends keyof Table
+    ? { [key in First]: RecursiveSelectAttributes<Table[First], Rest> }
+    : never
+  : Table;
+
+export type SelectAttributes<
+  Table,
+  Attributes extends ReadonlyArray<string>
+> = IntersectionToSingleObject<
+  UnionToIntersection<
+    RecursiveSelectAttributes<Table, ParsePath<Attributes[number]>>
+  >
+>;
 
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
@@ -73,6 +96,9 @@ export type DeepPartial<T> = {
     ? DeepPartial<T[P]>
     : T[P];
 };
+type IntersectionToSingleObject<T> = T extends infer U
+  ? { [K in keyof U]: U[K] }
+  : never;
 
 // We first need to parse the path string into a list of Properties,
 // Then, we recursively access Properties on the input object.
@@ -145,6 +171,22 @@ export type ObjectKeyPaths<T> =
           ? `${Key}.${ObjectKeyPaths<T[Key]>}`
           : // Otherwise, just return the current key
             Key
+        : // unreachable branch (if key is symbol)
+          never
+      : // unreachable branch (`extends infer` is always truthy), but needs to be here for syntax
+        never
+    : // Leaf value reached, don't return anything
+      never;
+
+export type ObjectFullPaths<T> =
+  // if `T` is an object
+  T extends Record<PropertyKey, unknown>
+    ? // Assign the union `keyof T` to a variable `Key`
+      keyof T extends infer Key
+      ? // Loop over union of keys
+        Key extends string | number
+        ? // Check if the current key is an object, if it is, concatenate the key and rest of the path recursively
+          `${Key}` | `${Key}.${ObjectKeyPaths<T[Key]>}`
         : // unreachable branch (if key is symbol)
           never
       : // unreachable branch (`extends infer` is always truthy), but needs to be here for syntax
