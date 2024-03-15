@@ -94,6 +94,27 @@ describe("tsynamo", () => {
       expect(data?.someBoolean).toBe(TEST_ITEM_1.someBoolean);
       expect(Object.keys(data!).length).toBe(2);
     });
+
+    it("handles selecting nested attributes", async () => {
+      const data = await tsynamoClient
+        .getItemFrom("myTable")
+        .keys({
+          userId: TEST_ITEM_5.userId,
+          dataTimestamp: TEST_ITEM_5.dataTimestamp,
+        })
+        .consistentRead(true)
+        .attributes(["someBoolean", "nested.nestedBoolean"])
+        .execute();
+
+      expect(data?.someBoolean).toBe(TEST_ITEM_5.someBoolean);
+      expect(data?.nested?.nestedBoolean).toBe(
+        TEST_ITEM_5.nested.nestedBoolean
+      );
+      expect(Object.keys(data!).length).toBe(2);
+    });
+    it.todo("handles selecting nested attributes excessively deep");
+    it.todo("handles selecting attributes from arrays");
+
     it("can't await instance directly", async () => {
       expect(
         async () =>

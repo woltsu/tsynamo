@@ -59,11 +59,29 @@ export type StripKeys<T> = T extends { _PK: true }
 /**
  * Returns a subset of a table's properties.
  */
-export type SelectAttributes<
+export type SelectAttributesRaw<
   Table,
   Attributes extends ReadonlyArray<keyof Table>
 > = {
   [A in Attributes[number]]: Table[A];
+};
+
+type NestedValue<T, K extends string> = K extends `${infer First}.${infer Rest}`
+  ? First extends keyof T
+    ? { [k in Rest]: NestedValue<T[First], Rest> }
+    : never
+  : K extends keyof T
+  ? T[K]
+  : never;
+
+// TODO make this Recursive
+export type SelectAttributes<
+  Table,
+  Attributes extends ReadonlyArray<string>
+> = {
+  [A in Attributes[number] as A extends `${infer First}.${infer _}`
+    ? First
+    : A]: NestedValue<Table, A>;
 };
 
 export type DeepPartial<T> = {
@@ -145,6 +163,22 @@ export type ObjectKeyPaths<T> =
           ? `${Key}.${ObjectKeyPaths<T[Key]>}`
           : // Otherwise, just return the current key
             Key
+        : // unreachable branch (if key is symbol)
+          never
+      : // unreachable branch (`extends infer` is always truthy), but needs to be here for syntax
+        never
+    : // Leaf value reached, don't return anything
+      never;
+
+export type ObjectFullPaths<T> =
+  // if `T` is an object
+  T extends Record<PropertyKey, unknown>
+    ? // Assign the union `keyof T` to a variable `Key`
+      keyof T extends infer Key
+      ? // Loop over union of keys
+        Key extends string | number
+        ? // Check if the current key is an object, if it is, concatenate the key and rest of the path recursively
+          `${Key}` | `${Key}.${ObjectKeyPaths<T[Key]>}`
         : // unreachable branch (if key is symbol)
           never
       : // unreachable branch (`extends infer` is always truthy), but needs to be here for syntax
