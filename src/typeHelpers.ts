@@ -89,8 +89,6 @@ export type SelectAttributes<
   >
 >;
 
-type a = ParsePath<"a.b[1].c" | "a.a.b">;
-
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
     ? Array<DeepPartial<U>>
