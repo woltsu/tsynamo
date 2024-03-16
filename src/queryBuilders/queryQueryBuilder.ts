@@ -14,6 +14,7 @@ import {
   NotExpression,
 } from "../nodes/operands";
 import { QueryNode } from "../nodes/queryNode";
+import { QueryCompiler } from "../queryCompiler";
 import {
   DeepPartial,
   GetFromPath,
@@ -802,4 +803,5 @@ preventAwait(
 interface GetQueryBuilderProps {
   readonly node: QueryNode;
   readonly ddbClient: DynamoDBDocumentClient;
+  readonly queryCompiler: QueryCompiler;
 }

@@ -4,6 +4,7 @@ import {
   QueryQueryBuilder,
   QueryQueryBuilderInterface,
 } from "./queryBuilders/queryQueryBuilder";
+import { QueryCompiler } from "./queryCompiler";
 
 export class QueryCreator<DDB> {
   readonly #props: QueryCreatorProps;
@@ -31,6 +32,7 @@ export class QueryCreator<DDB> {
         },
       },
       ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
     });
   }
 
@@ -51,10 +53,12 @@ export class QueryCreator<DDB> {
         },
       },
       ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
     });
   }
 }
 
 export interface QueryCreatorProps {
   readonly ddbClient: DynamoDBDocumentClient;
+  readonly queryCompiler: QueryCompiler;
 }

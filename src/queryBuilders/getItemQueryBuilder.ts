@@ -9,6 +9,7 @@ import {
   StripKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
+import { QueryCompiler } from "../queryCompiler";
 
 export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
@@ -77,15 +78,8 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
   }
 
   execute = async (): Promise<StripKeys<DeepPartial<O>> | undefined> => {
-    const command = new GetCommand({
-      TableName: this.#props.node.table?.table,
-      Key: this.#props.node.keys?.keys,
-      ConsistentRead: this.#props.node.consistentRead?.enabled,
-      ProjectionExpression: this.#props.node.attributes?.attributes.join(", "),
-    });
-
+    const command = this.#props.queryCompiler.compile(this.#props.node);
     const item = await this.#props.ddbClient.send(command);
-
     return (item.Item as StripKeys<DeepPartial<O>>) ?? undefined;
   };
 }
@@ -98,4 +92,5 @@ preventAwait(
 interface GetQueryBuilderProps {
   readonly node: GetNode;
   readonly ddbClient: DynamoDBDocumentClient;
+  readonly queryCompiler: QueryCompiler;
 }
