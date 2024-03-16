@@ -1,4 +1,3 @@
-const ONLY_ARR_ACCESSORS_REGEX = /[^\[\]\d]+/g;
 const ALL_BUT_ARR_ACCESSORS_REGEX = /\[\d+\]/g;
 
 export const getExpressionAttributeNameFrom = (path: string) => {
