@@ -205,4 +205,3 @@ export type ObjectFullPaths<T> =
         never
     : // Leaf value reached, don't return anything
       never;
-type a = ObjectFullPaths<{ cats: { name: string; age: number }[] }>;
