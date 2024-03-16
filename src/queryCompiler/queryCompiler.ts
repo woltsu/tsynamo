@@ -4,6 +4,12 @@ import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import { GetNode } from "../nodes/getNode";
 import { KeyConditionNode } from "../nodes/keyConditionNode";
 import { QueryNode } from "../nodes/queryNode";
+import {
+  getAttributeNameFrom,
+  getExpressionAttributeNameFrom,
+  mergeObjectIntoMap,
+} from "./compilerUtil";
+import { AttributesNode } from "../nodes/attributesNode";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
@@ -25,11 +31,15 @@ export class QueryCompiler {
       attributes: attributesNode,
     } = getNode;
 
+    const { ProjectionExpression, ExpressionAttributeNames } =
+      this.compileAttributeNamesNode(attributesNode);
+
     return new GetCommand({
       TableName: tableNode.table,
       Key: keysNode?.keys,
       ConsistentRead: consistentReadNode?.enabled,
-      ProjectionExpression: attributesNode?.attributes.join(", "),
+      ProjectionExpression,
+      ExpressionAttributeNames,
     });
   }
 
@@ -44,18 +54,24 @@ export class QueryCompiler {
       attributes: attributesNode,
     } = queryNode;
 
+    const attributeNames = new Map();
     const keyConditionAttributeValues = new Map();
     const filterExpressionAttributeValues = new Map();
 
     const compiledKeyConditionExpression = this.compileKeyConditionExpression(
       keyConditionsNode,
-      keyConditionAttributeValues
+      keyConditionAttributeValues,
+      attributeNames
     );
 
     const compiledFilterExpression = this.compileFilterExpression(
       filterExpressionNode,
-      filterExpressionAttributeValues
+      filterExpressionAttributeValues,
+      attributeNames
     );
+
+    const { ProjectionExpression, ExpressionAttributeNames } =
+      this.compileAttributeNamesNode(attributesNode);
 
     return new QueryCommand({
       TableName: tableNode.table,
@@ -70,13 +86,57 @@ export class QueryCompiler {
       },
       ScanIndexForward: scanIndexForwardNode?.enabled,
       ConsistentRead: consistentReadNode?.enabled,
-      ProjectionExpression: attributesNode?.attributes?.join(", "),
+      ProjectionExpression: ProjectionExpression,
+      ExpressionAttributeNames:
+        attributeNames.size > 0
+          ? {
+              ...Object.fromEntries(attributeNames),
+              ...ExpressionAttributeNames,
+            }
+          : undefined,
     });
+  }
+
+  compileAttributeNamesNode(node?: AttributesNode) {
+    const ProjectionExpression = node?.attributes
+      .map((att) => getExpressionAttributeNameFrom(att))
+      .join(", ");
+
+    const ExpressionAttributeNames = node?.attributes
+      .map((att) => getAttributeNameFrom(att))
+      .reduce((acc, curr) => {
+        curr.forEach(([key, value]) => {
+          acc[key] = value;
+        });
+        return acc;
+      }, {} as Record<string, string>);
+
+    return {
+      ProjectionExpression,
+      ExpressionAttributeNames,
+    };
+  }
+
+  compileAttributeName(path: string) {
+    const expressionAttributeName = getExpressionAttributeNameFrom(path);
+    const attributeNameMap = getAttributeNameFrom(path).reduce(
+      (acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
+    return {
+      expressionAttributeName,
+      attributeNameMap,
+    };
   }
 
   compileFilterExpression = (
     expression: FilterExpressionNode,
-    filterExpressionAttributeValues: Map<string, unknown>
+    filterExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
   ) => {
     let res = "";
 
@@ -87,7 +147,8 @@ export class QueryCompiler {
 
       res += this.compileFilterExpressionJoinNodes(
         joinNode,
-        filterExpressionAttributeValues
+        filterExpressionAttributeValues,
+        attributeNames
       );
     });
 
@@ -96,27 +157,37 @@ export class QueryCompiler {
 
   compileFilterExpressionJoinNodes = (
     { expr }: FilterExpressionJoinTypeNode,
-    filterExpressionAttributeValues: Map<string, unknown>
+    filterExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
   ) => {
     let res = "";
     const offset = filterExpressionAttributeValues.size;
     const attributeValue = `:filterExpressionValue${offset}`;
+    let attributeName: string | undefined = undefined;
+
+    // NOTE: We want to use attribute names instead of directly using the given keys
+    if ("key" in expr) {
+      const { expressionAttributeName, attributeNameMap } =
+        this.compileAttributeName(expr.key);
+
+      attributeName = expressionAttributeName;
+      mergeObjectIntoMap(attributeNames, attributeNameMap);
+    }
 
     switch (expr.kind) {
       case "FilterExpressionNode": {
         res += "(";
         res += this.compileFilterExpression(
           expr,
-          filterExpressionAttributeValues
+          filterExpressionAttributeValues,
+          attributeNames
         );
         res += ")";
         break;
       }
 
       case "FilterExpressionComparatorExpressions": {
-        // TODO: Instead of expr.key, use AttributeNames here to avoid
-        // problems with using reserved words.
-        res += `${expr.key} ${expr.operation} ${attributeValue}`;
+        res += `${attributeName} ${expr.operation} ${attributeValue}`;
         filterExpressionAttributeValues.set(attributeValue, expr.value);
         break;
       }
@@ -125,14 +196,15 @@ export class QueryCompiler {
         res += "NOT (";
         res += this.compileFilterExpression(
           expr.expr,
-          filterExpressionAttributeValues
+          filterExpressionAttributeValues,
+          attributeNames
         );
         res += ")";
         break;
       }
 
       case "BetweenConditionExpression": {
-        res += `${expr.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
+        res += `${attributeName} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
         filterExpressionAttributeValues.set(`${attributeValue}left`, expr.left);
         filterExpressionAttributeValues.set(
           `${attributeValue}right`,
@@ -142,19 +214,19 @@ export class QueryCompiler {
       }
 
       case "AttributeExistsFunctionExpression": {
-        res += `attribute_exists(${expr.key})`;
+        res += `attribute_exists(${attributeName})`;
         break;
       }
 
       case "AttributeNotExistsFunctionExpression": {
-        res += `attribute_not_exists(${expr.key})`;
+        res += `attribute_not_exists(${attributeName})`;
         break;
       }
 
       case "BeginsWithFunctionExpression": {
-        res += `begins_with(${expr.key}, ${attributeValue})`;
-
+        res += `begins_with(${attributeName}, ${attributeValue})`;
         filterExpressionAttributeValues.set(attributeValue, expr.substr);
+        break;
       }
     }
 
@@ -163,7 +235,8 @@ export class QueryCompiler {
 
   compileKeyConditionExpression = (
     keyConditions: KeyConditionNode[],
-    keyConditionAttributeValues: Map<string, unknown>
+    keyConditionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
   ) => {
     let res = "";
     keyConditions.forEach((keyCondition, i) => {
@@ -171,17 +244,18 @@ export class QueryCompiler {
         res += " AND ";
       }
 
+      const { expressionAttributeName, attributeNameMap } =
+        this.compileAttributeName(keyCondition.operation.key);
+
       const attributeValue = `:keyConditionValue${i}`;
       if (keyCondition.operation.kind === "KeyConditionComparatorExpression") {
-        // TODO: Instead of expr.key, use AttributeNames here to avoid
-        // problems with using reserved words.
-        res += `${keyCondition.operation.key} ${keyCondition.operation.operation} ${attributeValue}`;
+        res += `${expressionAttributeName} ${keyCondition.operation.operation} ${attributeValue}`;
         keyConditionAttributeValues.set(
           attributeValue,
           keyCondition.operation.value
         );
       } else if (keyCondition.operation.kind === "BetweenConditionExpression") {
-        res += `${keyCondition.operation.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
+        res += `${expressionAttributeName} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
         keyConditionAttributeValues.set(
           `${attributeValue}left`,
           keyCondition.operation.left
@@ -193,12 +267,14 @@ export class QueryCompiler {
       } else if (
         keyCondition.operation.kind === "BeginsWithFunctionExpression"
       ) {
-        res += `begins_with(${keyCondition.operation.key}, ${attributeValue})`;
+        res += `begins_with(${expressionAttributeName}, ${attributeValue})`;
         keyConditionAttributeValues.set(
           attributeValue,
           keyCondition.operation.substr
         );
       }
+
+      mergeObjectIntoMap(attributeNames, attributeNameMap);
     });
 
     return res;
