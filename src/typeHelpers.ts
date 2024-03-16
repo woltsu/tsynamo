@@ -77,6 +77,9 @@ type RecursiveSelectAttributes<Table, Properties> = Properties extends [
 ]
   ? First extends keyof Table
     ? { [key in First]: RecursiveSelectAttributes<Table[First], Rest> }
+    : // When "First" in path is a number, and Table is an Array, Recurse to the inner type of the array
+    [First, Table] extends [`${number}`, any[]]
+    ? RecursiveSelectAttributes<As<Table, any[]>[number], Rest>[]
     : never
   : Table;
 
@@ -179,14 +182,23 @@ export type ObjectKeyPaths<T> =
       never;
 
 export type ObjectFullPaths<T> =
-  // if `T` is an object
+  // if `T` is an object or array
   T extends Record<PropertyKey, unknown>
     ? // Assign the union `keyof T` to a variable `Key`
       keyof T extends infer Key
       ? // Loop over union of keys
         Key extends string | number
-        ? // Check if the current key is an object, if it is, concatenate the key and rest of the path recursively
-          `${Key}` | `${Key}.${ObjectKeyPaths<T[Key]>}`
+        ? // Check if the current key is an object
+          T[Key] extends Record<PropertyKey, unknown>
+          ? // If it's an object, concatenate the key and rest of the path recursively
+            `${Key}` | `${Key}.${ObjectFullPaths<T[Key]>}`
+          : // If it's not an object, check if its an array
+          T[Key] extends (infer A)[]
+          ? // If it's an array concatenate the key, array accessors, and the rest of the path recursively
+            | `${Key}`
+              | `${Key}[${number}]`
+              | `${Key}[${number}].${ObjectFullPaths<A[][number]>}`
+          : `${Key}`
         : // unreachable branch (if key is symbol)
           never
       : // unreachable branch (`extends infer` is always truthy), but needs to be here for syntax

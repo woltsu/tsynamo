@@ -28,6 +28,18 @@ export interface DDB {
     stringTimestamp: SortKey<string>;
     somethingElse: number;
     someBoolean: boolean;
+    tuple: [
+      {
+        beer: string;
+      },
+      {
+        bar: string;
+      }
+    ];
+    cats: {
+      name: string;
+      age: number;
+    }[];
   };
 }
 
@@ -162,6 +174,24 @@ export const TEST_DATA = [
     stringTimestamp: "123",
     somethingElse: -5,
     someBoolean: true,
+    tuple: [
+      {
+        beer: "karhu",
+      },
+      {
+        bar: "oljenkorsi",
+      },
+    ],
+    cats: [
+      {
+        name: "Pekka Töpöhäntä",
+        age: 42,
+      },
+      {
+        name: "Sylvester J. Pussycat Sr.",
+        age: 78,
+      },
+    ],
   },
   {
     userId: "123",

@@ -58,7 +58,7 @@ describe("GetItemQueryBuilder", () => {
     expect(Object.keys(data!).length).toBe(2);
   });
 
-  it("handles selecting nested attributes excessively deep", async () => {
+  it("handles selecting deeply nested attributes", async () => {
     const data = await tsynamoClient
       .getItemFrom("myTable")
       .keys({
@@ -76,7 +76,21 @@ describe("GetItemQueryBuilder", () => {
     expect(Object.keys(data!).length).toBe(2);
   });
 
-  it.todo("handles selecting attributes from arrays");
+  it("handles selecting attributes from arrays and tuples", async () => {
+    const data = await tsynamoClient
+      .getItemFrom("myOtherTable")
+      .keys({
+        userId: TEST_DATA[6].userId,
+        stringTimestamp: "123",
+      })
+      .consistentRead(true)
+      .attributes(["cats[1].age"])
+      .execute();
+
+    expect(Object.keys(data!).length).toBe(1);
+    expect(data?.cats?.length).toEqual(1);
+    expect(data?.cats?.[0].age).toEqual(TEST_DATA[6].cats[1].age);
+  });
 
   it("can't await instance directly", async () => {
     expect(
