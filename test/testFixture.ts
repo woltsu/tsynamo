@@ -28,7 +28,7 @@ export interface DDB {
     stringTimestamp: SortKey<string>;
     somethingElse: number;
     someBoolean: boolean;
-    tuple: [
+    tuplez: [
       {
         beer: string;
       },
@@ -174,7 +174,7 @@ export const TEST_DATA = [
     stringTimestamp: "123",
     somethingElse: -5,
     someBoolean: true,
-    tuple: [
+    tuplez: [
       {
         beer: "karhu",
       },

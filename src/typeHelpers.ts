@@ -181,6 +181,20 @@ export type ObjectKeyPaths<T> =
     : // Leaf value reached, don't return anything
       never;
 
+type IsTuple<T> = T extends [any, ...any] ? true : false;
+
+/**
+ * Generate union from 0 to N
+ * RangeToN<3> => 0 | 1 | 2 | 3
+ */
+type RangeToN<
+  N extends number,
+  Result extends any[] = []
+> = Result["length"] extends N
+  ? Result[number]
+  : RangeToN<N, [...Result, Result["length"]]>;
+
+//     T extends (number extends T['length'] ? [] : any[])
 export type ObjectFullPaths<T> =
   // if `T` is an object or array
   T extends Record<PropertyKey, unknown>
@@ -194,10 +208,17 @@ export type ObjectFullPaths<T> =
             `${Key}` | `${Key}.${ObjectFullPaths<T[Key]>}`
           : // If it's not an object, check if its an array
           T[Key] extends (infer A)[]
-          ? // If it's an array concatenate the key, array accessors, and the rest of the path recursively
-            | `${Key}`
-              | `${Key}[${number}]`
-              | `${Key}[${number}].${ObjectFullPaths<A[][number]>}`
+          ? IsTuple<T[Key]> extends true
+            ? // If tuple create array concatenate the key, specific array accessor for each index of the tuple, and the rest of the path recursively
+              | `${Key}`
+                | `${Key}[${RangeToN<T[Key]["length"]>}]`
+                | `${Key}[${RangeToN<T[Key]["length"]>}].${ObjectFullPaths<
+                    T[Key][number]
+                  >}`
+            : // If it's an array concatenate the key, array accessors, and the rest of the path recursively
+              | `${Key}`
+                | `${Key}[${number}]`
+                | `${Key}[${number}].${ObjectFullPaths<A[][number]>}`
           : `${Key}`
         : // unreachable branch (if key is symbol)
           never
