@@ -1,4 +1,4 @@
-const ALL_BUT_ARR_ACCESSORS_REGEX = /\[\d+\]/g;
+const LIST_ELEMENT_ACCESSOR_REGEX = /\[\d+\]/g;
 
 export const getExpressionAttributeNameFrom = (path: string) => {
   return path
@@ -11,7 +11,7 @@ export const getExpressionAttributeNameFrom = (path: string) => {
 
 export const getAttributeNameFrom = (path: string) => {
   return path
-    .replaceAll(ALL_BUT_ARR_ACCESSORS_REGEX, "")
+    .replaceAll(LIST_ELEMENT_ACCESSOR_REGEX, "")
     .split(".")
     .map((attributeName) => {
       return [`#${attributeName}`, attributeName];
