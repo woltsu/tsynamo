@@ -1,9 +1,15 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { QueryCreator } from "./queryCreator";
+import { QueryCompiler } from "./queryCompiler/queryCompiler";
 
 export class Tsynamo<DDB> extends QueryCreator<DDB> {
   constructor(args: TsynamoProps) {
-    super(args);
+    const queryCompiler = new QueryCompiler();
+
+    super({
+      ...args,
+      queryCompiler,
+    });
   }
 }
 

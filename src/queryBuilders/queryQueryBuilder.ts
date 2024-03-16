@@ -14,6 +14,7 @@ import {
   NotExpression,
 } from "../nodes/operands";
 import { QueryNode } from "../nodes/queryNode";
+import { QueryCompiler } from "../queryCompiler";
 import {
   DeepPartial,
   GetFromPath,
@@ -630,166 +631,9 @@ export class QueryQueryBuilder<
     }) as any;
   }
 
-  compileFilterExpression = (
-    expression: FilterExpressionNode,
-    filterExpressionAttributeValues: Map<string, unknown>
-  ) => {
-    let res = "";
-
-    expression.expressions.forEach((joinNode, i) => {
-      if (i !== 0) {
-        res += ` ${joinNode.joinType} `;
-      }
-
-      res += this.compileFilterExpressionJoinNodes(
-        joinNode,
-        filterExpressionAttributeValues
-      );
-    });
-
-    return res;
-  };
-
-  compileFilterExpressionJoinNodes = (
-    { expr }: FilterExpressionJoinTypeNode,
-    filterExpressionAttributeValues: Map<string, unknown>
-  ) => {
-    let res = "";
-    const offset = filterExpressionAttributeValues.size;
-    const attributeValue = `:filterExpressionValue${offset}`;
-
-    switch (expr.kind) {
-      case "FilterExpressionNode": {
-        res += "(";
-        res += this.compileFilterExpression(
-          expr,
-          filterExpressionAttributeValues
-        );
-        res += ")";
-        break;
-      }
-
-      case "FilterExpressionComparatorExpressions": {
-        // TODO: Instead of expr.key, use AttributeNames here to avoid
-        // problems with using reserved words.
-        res += `${expr.key} ${expr.operation} ${attributeValue}`;
-        filterExpressionAttributeValues.set(attributeValue, expr.value);
-        break;
-      }
-
-      case "FilterExpressionNotExpression": {
-        res += "NOT (";
-        res += this.compileFilterExpression(
-          expr.expr,
-          filterExpressionAttributeValues
-        );
-        res += ")";
-        break;
-      }
-
-      case "BetweenConditionExpression": {
-        res += `${expr.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
-        filterExpressionAttributeValues.set(`${attributeValue}left`, expr.left);
-        filterExpressionAttributeValues.set(
-          `${attributeValue}right`,
-          expr.right
-        );
-        break;
-      }
-
-      case "AttributeExistsFunctionExpression": {
-        res += `attribute_exists(${expr.key})`;
-        break;
-      }
-
-      case "AttributeNotExistsFunctionExpression": {
-        res += `attribute_not_exists(${expr.key})`;
-        break;
-      }
-
-      case "BeginsWithFunctionExpression": {
-        res += `begins_with(${expr.key}, ${attributeValue})`;
-
-        filterExpressionAttributeValues.set(attributeValue, expr.substr);
-      }
-    }
-
-    return res;
-  };
-
-  compileKeyConditionExpression = (
-    keyConditionAttributeValues: Map<string, unknown>
-  ) => {
-    let res = "";
-    this.#props.node.keyConditions.forEach((keyCondition, i) => {
-      if (i !== 0) {
-        res += " AND ";
-      }
-
-      const attributeValue = `:keyConditionValue${i}`;
-      if (keyCondition.operation.kind === "KeyConditionComparatorExpression") {
-        // TODO: Instead of expr.key, use AttributeNames here to avoid
-        // problems with using reserved words.
-        res += `${keyCondition.operation.key} ${keyCondition.operation.operation} ${attributeValue}`;
-        keyConditionAttributeValues.set(
-          attributeValue,
-          keyCondition.operation.value
-        );
-      } else if (keyCondition.operation.kind === "BetweenConditionExpression") {
-        res += `${keyCondition.operation.key} BETWEEN ${attributeValue}left AND ${attributeValue}right`;
-        keyConditionAttributeValues.set(
-          `${attributeValue}left`,
-          keyCondition.operation.left
-        );
-        keyConditionAttributeValues.set(
-          `${attributeValue}right`,
-          keyCondition.operation.right
-        );
-      } else if (
-        keyCondition.operation.kind === "BeginsWithFunctionExpression"
-      ) {
-        res += `begins_with(${keyCondition.operation.key}, ${attributeValue})`;
-        keyConditionAttributeValues.set(
-          attributeValue,
-          keyCondition.operation.substr
-        );
-      }
-    });
-
-    return res;
-  };
-
   execute = async (): Promise<StripKeys<DeepPartial<O>>[] | undefined> => {
-    const keyConditionAttributeValues = new Map();
-    const filterExpressionAttributeValues = new Map();
-
-    const compiledKeyConditionExpression = this.compileKeyConditionExpression(
-      keyConditionAttributeValues
-    );
-
-    const compiledFilterExpression = this.compileFilterExpression(
-      this.#props.node.filterExpression,
-      filterExpressionAttributeValues
-    );
-
-    const command = new QueryCommand({
-      TableName: this.#props.node.table.table,
-      KeyConditionExpression: compiledKeyConditionExpression,
-      FilterExpression: compiledFilterExpression
-        ? compiledFilterExpression
-        : undefined,
-      Limit: this.#props.node.limit?.limit,
-      ExpressionAttributeValues: {
-        ...Object.fromEntries(keyConditionAttributeValues),
-        ...Object.fromEntries(filterExpressionAttributeValues),
-      },
-      ScanIndexForward: this.#props.node.scanIndexForward?.enabled,
-      ConsistentRead: this.#props.node.consistentRead?.enabled,
-      ProjectionExpression: this.#props.node.attributes?.attributes.join(", "),
-    });
-
+    const command = this.#props.queryCompiler.compile(this.#props.node);
     const result = await this.#props.ddbClient.send(command);
-
     return (result.Items as StripKeys<DeepPartial<O>>[]) ?? undefined;
   };
 }
@@ -802,4 +646,5 @@ preventAwait(
 interface GetQueryBuilderProps {
   readonly node: QueryNode;
   readonly ddbClient: DynamoDBDocumentClient;
+  readonly queryCompiler: QueryCompiler;
 }
