@@ -211,10 +211,11 @@ export type ObjectFullPaths<T> =
           ? IsTuple<T[Key]> extends true
             ? // If tuple create array concatenate the key, specific array accessor for each index of the tuple, and the rest of the path recursively
               | `${Key}`
-                | `${Key}[${RangeToN<T[Key]["length"]>}]`
-                | `${Key}[${RangeToN<T[Key]["length"]>}].${ObjectFullPaths<
-                    T[Key][number]
-                  >}`
+                | `${Key}${ObjectFullPaths<{
+                    [SpecificKey in RangeToN<
+                      T[Key]["length"]
+                    > as `[${SpecificKey}]`]: T[Key][SpecificKey];
+                  }>}`
             : // If it's an array concatenate the key, array accessors, and the rest of the path recursively
               | `${Key}`
                 | `${Key}[${number}]`
