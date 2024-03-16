@@ -178,3 +178,10 @@ WIP
 ## Scan
 
 WIP
+
+# Contributors
+<p>
+    <a href="https://github.com/woltsu/tsynamo/graphs/contributors">
+        <img src="https://contrib.rocks/image?repo=woltsu/tsynamo" />
+    </a>
+</p>
