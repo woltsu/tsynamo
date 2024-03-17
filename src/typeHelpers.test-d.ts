@@ -133,7 +133,7 @@ describe("typeHelpers typecheck", () => {
       Table,
       ["key", "tuple[0]", "tuple[1]"]
     >;
-    // TODO Fix this to be [{kissa: "koira"}, number]
+    // TODO Fix this to be [{kissa: "koira"}, number] or at least union
     expectTypeOf<selectTuple3>().toEqualTypeOf<{
       key: number;
       tuple: [

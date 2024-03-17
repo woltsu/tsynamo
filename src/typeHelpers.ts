@@ -78,7 +78,7 @@ type RecursiveSelectAttributes<Table, Properties> = Properties extends [
   ? [First, IsTuple<Table>] extends [`${number}`, true]
     ? First extends keyof Table
       ? [RecursiveSelectAttributes<Table[First], Rest>]
-      : Table
+      : never
     : [First, Table] extends [`${number}`, any[]]
     ? RecursiveSelectAttributes<As<Table, any[]>[number], Rest>[]
     : First extends keyof Table
