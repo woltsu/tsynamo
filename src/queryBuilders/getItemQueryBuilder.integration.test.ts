@@ -98,11 +98,25 @@ describe("GetItemQueryBuilder", () => {
         stringTimestamp: "123",
       })
       .consistentRead(true)
-      .attributes(["tuplez[0]"])
+      .attributes(["tuplez[1]"])
       .execute();
 
     expect(Object.keys(data!).length).toBe(1);
-    expect(data?.tuplez?.[0]).toEqual(TEST_DATA[6].tuplez[0]);
+    expect(data?.tuplez?.[0]).toEqual(TEST_DATA[6].tuplez[1]);
+  });
+  it("handles selecting multiple attributes from tuples", async () => {
+    const data = await tsynamoClient
+      .getItemFrom("myOtherTable")
+      .keys({
+        userId: TEST_DATA[6].userId,
+        stringTimestamp: "123",
+      })
+      .consistentRead(true)
+      .attributes(["tuplez[0]", "tuplez[1]"])
+      .execute();
+
+    expect(Object.keys(data!).length).toBe(1);
+    expect(data?.tuplez).toEqual(TEST_DATA[6].tuplez);
   });
 
   it("can't await instance directly", async () => {

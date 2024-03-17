@@ -116,18 +116,41 @@ describe("typeHelpers typecheck", () => {
     type selectTuple1 = SelectAttributes<Table, ["key", "tuple[0]"]>;
     expectTypeOf<selectTuple1>().toEqualTypeOf<{
       key: number;
-      tuple: {
-        0: {
+      tuple: [
+        {
           kissa: "koira";
-        };
-      };
+        }
+      ];
     }>();
 
     type selectTuple2 = SelectAttributes<Table, ["key", "tuple[1]"]>;
-    // TODO Fix this =(
-    // expectTypeOf<selectTuple2>().toEqualTypeOf<{
-    //   key: number;
-    //   tuple: { 0: number };
-    // }>();
+    expectTypeOf<selectTuple2>().toEqualTypeOf<{
+      key: number;
+      tuple: [number];
+    }>();
+
+    type selectTuple3 = SelectAttributes<
+      Table,
+      ["key", "tuple[0]", "tuple[1]"]
+    >;
+    // TODO Fix this to be [{kissa: "koira"}, number]
+    expectTypeOf<selectTuple3>().toEqualTypeOf<{
+      key: number;
+      tuple: [
+        {
+          kissa: "koira";
+        }
+      ] &
+        [number];
+    }>();
+
+    type selectArray = SelectAttributes<Table, ["key", "cats[0]"]>;
+    expectTypeOf<selectArray>().toEqualTypeOf<{
+      key: number;
+      cats: {
+        name: string;
+        age: number;
+      }[];
+    }>();
   });
 });

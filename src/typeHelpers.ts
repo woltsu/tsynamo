@@ -75,11 +75,14 @@ type RecursiveSelectAttributes<Table, Properties> = Properties extends [
   infer First,
   ...infer Rest
 ]
-  ? First extends keyof Table
-    ? { [key in First]: RecursiveSelectAttributes<Table[First], Rest> }
-    : // When "First" in path is a number, and Table is an Array, Recurse to the inner type of the array
-    [First, Table] extends [`${number}`, any[]]
+  ? [First, IsTuple<Table>] extends [`${number}`, true]
+    ? First extends keyof Table
+      ? [RecursiveSelectAttributes<Table[First], Rest>]
+      : Table
+    : [First, Table] extends [`${number}`, any[]]
     ? RecursiveSelectAttributes<As<Table, any[]>[number], Rest>[]
+    : First extends keyof Table
+    ? { [key in First]: RecursiveSelectAttributes<Table[First], Rest> }
     : never
   : Table;
 
