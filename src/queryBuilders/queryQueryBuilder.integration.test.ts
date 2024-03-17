@@ -136,7 +136,7 @@ describe("QueryQueryBuilder", () => {
   });
 
   it("handles a FilterExpression that uses attribute_exists and attribute_not_exists", async () => {
-    let data = await tsynamoClient
+    const data = await tsynamoClient
       .query("myTable")
       .keyCondition("userId", "=", "123")
       .filterExpression("nested.nestedString", "attribute_exists")
@@ -144,14 +144,14 @@ describe("QueryQueryBuilder", () => {
 
     expect(data).toMatchSnapshot();
 
-    data = await tsynamoClient
+    const data2 = await tsynamoClient
       .query("myTable")
       .keyCondition("userId", "=", "123")
       .filterExpression("nested.nestedString", "attribute_not_exists")
       .attributes(["userId", "nested"])
       .execute();
 
-    expect(data).toMatchSnapshot();
+    expect(data2).toMatchSnapshot();
   });
 
   it("handles a FilterExpression that uses begins_with", async () => {

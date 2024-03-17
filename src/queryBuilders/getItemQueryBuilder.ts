@@ -2,12 +2,11 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { GetNode } from "../nodes/getNode";
 import { QueryCompiler } from "../queryCompiler";
 import {
-  DeepPartial,
+  ExecuteOutput,
   ObjectFullPaths,
   PickPk,
   PickSkRequired,
   SelectAttributes,
-  StripKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
 
@@ -22,7 +21,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     attributes: A
   ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
-  execute(): Promise<StripKeys<DeepPartial<O>> | undefined>;
+  execute(): Promise<ExecuteOutput<O> | undefined>;
 }
 
 export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
@@ -77,10 +76,10 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     }) as any;
   }
 
-  execute = async (): Promise<StripKeys<DeepPartial<O>> | undefined> => {
+  execute = async (): Promise<ExecuteOutput<O> | undefined> => {
     const command = this.#props.queryCompiler.compile(this.#props.node);
     const item = await this.#props.ddbClient.send(command);
-    return (item.Item as StripKeys<DeepPartial<O>>) ?? undefined;
+    return (item.Item as ExecuteOutput<O>) ?? undefined;
   };
 }
 

@@ -15,7 +15,7 @@ import {
 import { QueryNode } from "../nodes/queryNode";
 import { QueryCompiler } from "../queryCompiler";
 import {
-  DeepPartial,
+  ExecuteOutput,
   GetFromPath,
   ObjectFullPaths,
   ObjectKeyPaths,
@@ -28,7 +28,7 @@ import {
 import { preventAwait } from "../util/preventAwait";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
-  execute(): Promise<StripKeys<DeepPartial<O>>[] | undefined>;
+  execute(): Promise<ExecuteOutput<O>[] | undefined>;
 
   /**
    * keyCondition methods
@@ -694,10 +694,10 @@ export class QueryQueryBuilder<
     }) as any;
   }
 
-  execute = async (): Promise<StripKeys<DeepPartial<O>>[] | undefined> => {
+  execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
     const command = this.#props.queryCompiler.compile(this.#props.node);
     const result = await this.#props.ddbClient.send(command);
-    return (result.Items as StripKeys<DeepPartial<O>>[]) ?? undefined;
+    return (result.Items as ExecuteOutput<O>[]) ?? undefined;
   };
 }
 
