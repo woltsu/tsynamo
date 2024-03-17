@@ -171,12 +171,23 @@ describe("QueryQueryBuilder", () => {
 
     expect(data).toMatchSnapshot();
   });
+
   it("handles a FilterExpression that takes attributes from cats array", async () => {
     let data = await tsynamoClient
       .query("myOtherTable")
       .keyCondition("userId", "=", "123")
       .filterExpression("cats", "attribute_exists")
       .attributes(["cats[0].age"])
+      .execute();
+
+    expect(data).toMatchSnapshot();
+  });
+
+  it("handles a FilterExpression that uses CONTAINS function", async () => {
+    const data = await tsynamoClient
+      .query("myTable")
+      .keyCondition("userId", "=", "313")
+      .filterExpression("tags", "contains", "testTag")
       .execute();
 
     expect(data).toMatchSnapshot();

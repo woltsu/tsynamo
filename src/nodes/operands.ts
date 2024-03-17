@@ -1,10 +1,11 @@
 export type BetweenExpression = "BETWEEN";
 
-// TODO: Support "contains", "size", and "attribute_type" functions
+// TODO: Support "size" and "attribute_type" functions
 export type FunctionExpression =
   | "attribute_exists"
   | "attribute_not_exists"
-  | "begins_with";
+  | "begins_with"
+  | "contains";
 
 export type NotExpression = "NOT";
 

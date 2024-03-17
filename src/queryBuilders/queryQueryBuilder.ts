@@ -1,11 +1,10 @@
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { AttributeExistsFunctionExpression } from "../nodes/attributeExistsFunctionExpression";
 import { AttributeNotExistsFunctionExpression } from "../nodes/attributeNotExistsFunctionExpression";
 import {
   FilterExpressionJoinTypeNode,
   JoinType,
 } from "../nodes/filterExpressionJoinTypeNode";
-import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import {
   BetweenExpression,
   FilterConditionComparators,
@@ -77,11 +76,21 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     >
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  // begins_with function expression
+  // BEGINS_WITH function expression
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: Extract<FunctionExpression, "begins_with">,
     substr: string
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  // CONTAINS function expression
+  filterExpression<
+    Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>,
+    Property extends GetFromPath<DDB[Table], Key> & unknown[]
+  >(
+    key: Key,
+    expr: Extract<FunctionExpression, "contains">,
+    value: StripKeys<Property>[number]
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   // BETWEEN expression
@@ -132,6 +141,16 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     key: Key,
     expr: Extract<FunctionExpression, "begins_with">,
     substr: string
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  // CONTAINS function expression
+  orFilterExpression<
+    Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>,
+    Property extends GetFromPath<DDB[Table], Key> & unknown[]
+  >(
+    key: Key,
+    expr: Extract<FunctionExpression, "contains">,
+    value: StripKeys<Property>[number]
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   // BETWEEN expression
@@ -202,6 +221,15 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
     substr: string
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
+  filterExpression<
+    Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>,
+    Property extends GetFromPath<DDB[Table], Key> & unknown[]
+  >(
+    key: Key,
+    expr: Extract<FunctionExpression, "contains">,
+    value: StripKeys<Property>[number]
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     expr: BetweenExpression,
@@ -243,6 +271,15 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
     key: Key,
     func: Extract<FunctionExpression, "begins_with">,
     substr: string
+  ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
+
+  orFilterExpression<
+    Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>,
+    Property extends GetFromPath<DDB[Table], Key> & unknown[]
+  >(
+    key: Key,
+    expr: Extract<FunctionExpression, "contains">,
+    value: StripKeys<Property>[number]
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
@@ -287,6 +324,11 @@ type FilterExprArgs<
       >
     ]
   | [key: Key, func: Extract<FunctionExpression, "begins_with">, substr: string]
+  | [
+      key: Key,
+      expr: Extract<FunctionExpression, "contains">,
+      value: StripKeys<GetFromPath<DDB[Table], Key>>
+    ]
   | [
       key: Key,
       expr: BetweenExpression,
@@ -415,6 +457,27 @@ export class QueryQueryBuilder<
                 kind: "BeginsWithFunctionExpression",
                 key,
                 substr,
+              },
+              joinType,
+            }),
+          },
+        },
+      });
+    } else if (args[1] === "contains") {
+      const [key, expr, value] = args;
+
+      return new QueryQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          filterExpression: {
+            ...this.#props.node.filterExpression,
+            expressions: this.#props.node.filterExpression.expressions.concat({
+              kind: "FilterExpressionJoinTypeNode",
+              expr: {
+                kind: "ContainsFunctionExpression",
+                key,
+                value,
               },
               joinType,
             }),

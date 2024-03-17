@@ -2,6 +2,7 @@ import { AttributeExistsFunctionExpression } from "./attributeExistsFunctionExpr
 import { AttributeNotExistsFunctionExpression } from "./attributeNotExistsFunctionExpression";
 import { BeginsWithFunctionExpression } from "./beginsWithFunctionExpression";
 import { BetweenConditionExpression } from "./betweenConditionExpression";
+import { ContainsFunctionExpression } from "./containsFunctionExpression";
 import { FilterExpressionComparatorExpressions } from "./filterExpressionComparatorExpression";
 import { FilterExpressionNode } from "./filterExpressionNode";
 import { FilterExpressionNotExpression } from "./filterExpressionNotExpression";
@@ -17,6 +18,7 @@ export type FilterExpressionJoinTypeNode = {
     | AttributeExistsFunctionExpression
     | AttributeNotExistsFunctionExpression
     | BetweenConditionExpression
-    | BeginsWithFunctionExpression;
+    | BeginsWithFunctionExpression
+    | ContainsFunctionExpression;
   readonly joinType: JoinType;
 };

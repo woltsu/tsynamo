@@ -1,5 +1,6 @@
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { GetNode } from "../nodes/getNode";
+import { QueryCompiler } from "../queryCompiler";
 import {
   DeepPartial,
   ObjectFullPaths,
@@ -9,7 +10,6 @@ import {
   StripKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
-import { QueryCompiler } from "../queryCompiler";
 
 export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(

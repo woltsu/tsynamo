@@ -88,7 +88,7 @@ export class QueryCompiler {
       ConsistentRead: consistentReadNode?.enabled,
       ProjectionExpression: ProjectionExpression,
       ExpressionAttributeNames:
-        attributeNames.size > 0
+        attributeNames.size > 0 || ExpressionAttributeNames
           ? {
               ...Object.fromEntries(attributeNames),
               ...ExpressionAttributeNames,
@@ -226,6 +226,12 @@ export class QueryCompiler {
       case "BeginsWithFunctionExpression": {
         res += `begins_with(${attributeName}, ${attributeValue})`;
         filterExpressionAttributeValues.set(attributeValue, expr.substr);
+        break;
+      }
+
+      case "ContainsFunctionExpression": {
+        res += `contains(${attributeName}, ${attributeValue})`;
+        filterExpressionAttributeValues.set(attributeValue, expr.value);
         break;
       }
     }

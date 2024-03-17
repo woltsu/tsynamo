@@ -22,6 +22,7 @@ export interface DDB {
         nestedNestedBoolean: boolean;
       };
     };
+    tags: string[];
   };
   myOtherTable: {
     userId: PartitionKey<string>;
@@ -215,5 +216,12 @@ export const TEST_DATA = [
         nestedNestedBoolean: true,
       },
     },
+  },
+  {
+    userId: "313",
+    dataTimestamp: 996,
+    somethingElse: -9,
+    someBoolean: false,
+    tags: ["testTag"],
   },
 ] as const;

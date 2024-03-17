@@ -12,6 +12,20 @@ exports[`QueryQueryBuilder > handles a FilterExpression that takes attributes fr
 ]
 `;
 
+exports[`QueryQueryBuilder > handles a FilterExpression that uses CONTAINS function 1`] = `
+[
+  {
+    "dataTimestamp": 996,
+    "someBoolean": false,
+    "somethingElse": -9,
+    "tags": [
+      "testTag",
+    ],
+    "userId": "313",
+  },
+]
+`;
+
 exports[`QueryQueryBuilder > handles a FilterExpression that uses attribute_exists and attribute_not_exists 1`] = `
 [
   {
