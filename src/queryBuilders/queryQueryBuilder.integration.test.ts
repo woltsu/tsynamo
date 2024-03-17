@@ -1,4 +1,3 @@
-import { beforeAll, describe, expect, it } from "vitest";
 import { DDB, TEST_DATA } from "../../test/testFixture";
 import { getDDBClientFor, startDDBTestContainer } from "../../test/testUtil";
 import { Tsynamo } from "./../index";
