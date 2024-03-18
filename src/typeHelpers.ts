@@ -99,6 +99,11 @@ export type DeepPartial<T> = {
     ? DeepPartial<T[P]>
     : T[P];
 };
+
+export type ExecuteOutput<O> = StripKeys<
+  PickPk<O> & PickSkRequired<O> & DeepPartial<O>
+>;
+
 type IntersectionToSingleObject<T> = T extends infer U
   ? { [K in keyof U]: U[K] }
   : never;
