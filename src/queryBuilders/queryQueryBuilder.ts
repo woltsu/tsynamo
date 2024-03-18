@@ -21,11 +21,11 @@ import { ExprArgs, ExpressionBuilder } from "./expressionBuilder";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args: ExprArgs<DDB, Table, O, Key>
+    ...args: ExprArgs<DDB, Table, O, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args: ExprArgs<DDB, Table, O, Key>
+    ...args: ExprArgs<DDB, Table, O, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   /**
@@ -156,7 +156,7 @@ export class QueryQueryBuilder<
   }
 
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args: ExprArgs<DDB, Table, O, Key>
+    ...args: ExprArgs<DDB, Table, O, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.filterExpression },
@@ -174,7 +174,7 @@ export class QueryQueryBuilder<
   }
 
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args: ExprArgs<DDB, Table, O, Key>
+    ...args: ExprArgs<DDB, Table, O, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.filterExpression },
