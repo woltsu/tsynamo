@@ -204,10 +204,6 @@ export class QueryQueryBuilder<
     });
   }
 
-  /* _getNode() {
-    return this.#props.node;
-  } */
-
   scanIndexForward(
     enabled: boolean
   ): QueryQueryBuilderInterface<DDB, Table, O> {
