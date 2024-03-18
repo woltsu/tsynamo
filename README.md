@@ -1,6 +1,6 @@
 # Tsynamo
 
-Typed DynamoDB query builder! Inspired by [Kysely](https://github.com/kysely-org/kysely/tree/master).
+Type-friendly DynamoDB query builder! Inspired by [Kysely](https://github.com/kysely-org/kysely/tree/master).
 
 Usable with AWS SDK v3 `DynamoDBDocumentClient`.
 
