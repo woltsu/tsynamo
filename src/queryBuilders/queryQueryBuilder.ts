@@ -2,12 +2,12 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { AttributeExistsFunctionExpression } from "../nodes/attributeExistsFunctionExpression";
 import { AttributeNotExistsFunctionExpression } from "../nodes/attributeNotExistsFunctionExpression";
 import {
-  FilterExpressionJoinTypeNode,
+  ExpressionJoinTypeNode,
   JoinType,
-} from "../nodes/filterExpressionJoinTypeNode";
+} from "../nodes/expressionJoinTypeNode";
 import {
   BetweenExpression,
-  FilterConditionComparators,
+  ExpressionConditionComparators,
   FunctionExpression,
   KeyConditionComparators,
   NotExpression,
@@ -63,7 +63,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   // Regular operand
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Exclude<Key, "NOT">,
-    operation: Key extends NotExpression ? never : FilterConditionComparators,
+    operation: Key extends NotExpression ? never : ExpressionConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
@@ -123,7 +123,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   // Regular operand
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
-    operation: FilterConditionComparators,
+    operation: ExpressionConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
@@ -203,7 +203,7 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
    */
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
-    operation: FilterConditionComparators,
+    operation: ExpressionConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
@@ -255,7 +255,7 @@ export interface QueryQueryBuilderInterfaceWithOnlyFilterOperations<
    */
   orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
-    operation: FilterConditionComparators,
+    operation: ExpressionConditionComparators,
     val: StripKeys<GetFromPath<DDB[Table], Key>>
   ): QueryQueryBuilderInterfaceWithOnlyFilterOperations<DDB, Table, O>;
 
@@ -313,7 +313,7 @@ type FilterExprArgs<
 > =
   | [
       key: Key,
-      operation: FilterConditionComparators,
+      operation: ExpressionConditionComparators,
       value: StripKeys<GetFromPath<DDB[Table], Key>>
     ]
   | [
@@ -452,7 +452,7 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
+              kind: "ExpressionJoinTypeNode",
               expr: {
                 kind: "BeginsWithFunctionExpression",
                 key,
@@ -473,7 +473,7 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
+              kind: "ExpressionJoinTypeNode",
               expr: {
                 kind: "ContainsFunctionExpression",
                 key,
@@ -506,7 +506,7 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
+              kind: "ExpressionJoinTypeNode",
               expr: resultExpr,
               joinType,
             }),
@@ -523,7 +523,7 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
+              kind: "ExpressionJoinTypeNode",
               expr: {
                 kind: "BetweenConditionExpression",
                 key,
@@ -551,10 +551,10 @@ export class QueryQueryBuilder<
           filterExpression: {
             ...this.#props.node.filterExpression,
             expressions: this.#props.node.filterExpression.expressions.concat({
-              kind: "FilterExpressionJoinTypeNode",
+              kind: "ExpressionJoinTypeNode",
               joinType,
               expr: {
-                kind: "FilterExpressionComparatorExpressions",
+                kind: "ExpressionComparatorExpressions",
                 key,
                 operation,
                 value,
@@ -580,7 +580,7 @@ export class QueryQueryBuilder<
           ...this.#props.node,
           filterExpression: {
             expressions: [],
-            kind: "FilterExpressionNode",
+            kind: "ExpressionNode",
           },
         },
       });
@@ -589,8 +589,8 @@ export class QueryQueryBuilder<
 
       const { filterExpression } = result._getNode();
 
-      let resultNode: FilterExpressionJoinTypeNode = {
-        kind: "FilterExpressionJoinTypeNode",
+      let resultNode: ExpressionJoinTypeNode = {
+        kind: "ExpressionJoinTypeNode",
         expr: filterExpression,
         joinType,
       };
@@ -599,7 +599,7 @@ export class QueryQueryBuilder<
         resultNode = {
           ...resultNode,
           expr: {
-            kind: "FilterExpressionNotExpression",
+            kind: "ExpressionNotExpression",
             expr: filterExpression,
           },
         };
@@ -621,7 +621,6 @@ export class QueryQueryBuilder<
     throw new Error("Invalid arguments given to filterExpression");
   }
 
-  // TODO: Add support for all operations from here: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html#Expressions.OperatorsAndFunctions.Syntax
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: FilterExprArgs<DDB, Table, O, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O> {

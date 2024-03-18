@@ -58,7 +58,7 @@ export class QueryCreator<DDB> {
         },
         keyConditions: [],
         filterExpression: {
-          kind: "FilterExpressionNode",
+          kind: "ExpressionNode",
           expressions: [],
         },
       },

@@ -1,6 +1,6 @@
 import { AttributesNode } from "./attributesNode";
 import { ConsistentReadNode } from "./consistentReadNode";
-import { FilterExpressionNode } from "./filterExpressionNode";
+import { ExpressionNode } from "./expressionNode";
 import { KeyConditionNode } from "./keyConditionNode";
 import { LimitNode } from "./limitNode";
 import { ScanIndexForwardNode } from "./scanIndexForwardNode";
@@ -10,7 +10,7 @@ export type QueryNode = {
   readonly kind: "QueryNode";
   readonly table: TableNode;
   readonly keyConditions: KeyConditionNode[];
-  readonly filterExpression: FilterExpressionNode;
+  readonly filterExpression: ExpressionNode;
   readonly consistentRead?: ConsistentReadNode;
   readonly scanIndexForward?: ScanIndexForwardNode;
   readonly limit?: LimitNode;

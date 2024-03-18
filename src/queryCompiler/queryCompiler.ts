@@ -1,6 +1,6 @@
 import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { FilterExpressionJoinTypeNode } from "../nodes/filterExpressionJoinTypeNode";
-import { FilterExpressionNode } from "../nodes/filterExpressionNode";
+import { ExpressionJoinTypeNode } from "../nodes/expressionJoinTypeNode";
+import { ExpressionNode } from "../nodes/expressionNode";
 import { GetNode } from "../nodes/getNode";
 import { KeyConditionNode } from "../nodes/keyConditionNode";
 import { QueryNode } from "../nodes/queryNode";
@@ -68,7 +68,7 @@ export class QueryCompiler {
       attributeNames
     );
 
-    const compiledFilterExpression = this.compileFilterExpression(
+    const compiledFilterExpression = this.compileExpression(
       filterExpressionNode,
       filterExpressionAttributeValues,
       attributeNames
@@ -151,8 +151,8 @@ export class QueryCompiler {
     };
   }
 
-  compileFilterExpression = (
-    expression: FilterExpressionNode,
+  compileExpression = (
+    expression: ExpressionNode,
     filterExpressionAttributeValues: Map<string, unknown>,
     attributeNames: Map<string, string>
   ) => {
@@ -174,7 +174,7 @@ export class QueryCompiler {
   };
 
   compileFilterExpressionJoinNodes = (
-    { expr }: FilterExpressionJoinTypeNode,
+    { expr }: ExpressionJoinTypeNode,
     filterExpressionAttributeValues: Map<string, unknown>,
     attributeNames: Map<string, string>
   ) => {
@@ -193,9 +193,9 @@ export class QueryCompiler {
     }
 
     switch (expr.kind) {
-      case "FilterExpressionNode": {
+      case "ExpressionNode": {
         res += "(";
-        res += this.compileFilterExpression(
+        res += this.compileExpression(
           expr,
           filterExpressionAttributeValues,
           attributeNames
@@ -204,15 +204,15 @@ export class QueryCompiler {
         break;
       }
 
-      case "FilterExpressionComparatorExpressions": {
+      case "ExpressionComparatorExpressions": {
         res += `${attributeName} ${expr.operation} ${attributeValue}`;
         filterExpressionAttributeValues.set(attributeValue, expr.value);
         break;
       }
 
-      case "FilterExpressionNotExpression": {
+      case "ExpressionNotExpression": {
         res += "NOT (";
-        res += this.compileFilterExpression(
+        res += this.compileExpression(
           expr.expr,
           filterExpressionAttributeValues,
           attributeNames

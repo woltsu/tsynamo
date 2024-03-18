@@ -10,4 +10,4 @@ export type FunctionExpression =
 export type NotExpression = "NOT";
 
 export type KeyConditionComparators = "=" | "<" | "<=" | ">" | ">=";
-export type FilterConditionComparators = KeyConditionComparators | "<>";
+export type ExpressionConditionComparators = KeyConditionComparators | "<>";
