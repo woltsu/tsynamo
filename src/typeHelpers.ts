@@ -1,3 +1,4 @@
+import { DDB } from "../test/testFixture";
 import type { PartitionKey, SortKey } from "./ddbTypes";
 
 /**
@@ -55,6 +56,14 @@ export type StripKeys<T> = T extends { _PK: true }
   : T extends { _SK: true }
   ? Omit<T, "_SK">
   : T;
+
+export type DeepStripKeys<T> = {
+  [P in keyof T]: T[P] extends Array<infer U>
+    ? Array<DeepStripKeys<U>>
+    : T[P] extends object
+    ? DeepStripKeys<T[P]>
+    : StripKeys<T[P]>;
+};
 
 /**
  * Returns a subset of a table's properties.

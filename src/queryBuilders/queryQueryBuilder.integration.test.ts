@@ -48,6 +48,7 @@ describe("QueryQueryBuilder", () => {
       .query("myTable")
       .keyCondition("userId", "=", TEST_DATA[0].userId)
       .filterExpression("someBoolean", "=", true)
+      .filterExpression("someBoolean", "=", true)
       .execute();
 
     expect(data?.length).toBe(2);
@@ -74,8 +75,8 @@ describe("QueryQueryBuilder", () => {
       .filterExpression("somethingElse", "<", 2)
       .orFilterExpression((qb) =>
         qb
-          .filterExpression("someBoolean", "=", true)
-          .filterExpression("somethingElse", "=", 2)
+          .expression("someBoolean", "=", true)
+          .expression("somethingElse", "=", 2)
       )
       .execute();
 
@@ -86,9 +87,7 @@ describe("QueryQueryBuilder", () => {
     let data = await tsynamoClient
       .query("myTable")
       .keyCondition("userId", "=", "123")
-      .filterExpression("NOT", (qb) =>
-        qb.filterExpression("someBoolean", "=", true)
-      )
+      .filterExpression("NOT", (qb) => qb.expression("someBoolean", "=", true))
       .execute();
 
     expect(data).toMatchSnapshot();
@@ -97,9 +96,7 @@ describe("QueryQueryBuilder", () => {
       .query("myTable")
       .keyCondition("userId", "=", "123")
       .filterExpression("someBoolean", "=", true)
-      .orFilterExpression("NOT", (qb) =>
-        qb.filterExpression("somethingElse", "=", 0)
-      )
+      .orFilterExpression("NOT", (qb) => qb.expression("somethingElse", "=", 0))
       .execute();
 
     expect(data).toMatchSnapshot();

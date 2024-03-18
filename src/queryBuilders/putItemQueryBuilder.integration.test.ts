@@ -64,4 +64,19 @@ describe("GetItemQueryBuilder", () => {
 
     expect(result).toEqual(itemToPut);
   });
+
+  it("handles an 'attribute_not_exists' ConditionExpression", async () => {
+    await tsynamoClient.putItem("myTable").item(itemToPut).execute();
+    expect(
+      tsynamoClient
+        .putItem("myTable")
+        .item(itemToPut)
+        .conditionExpression("userId", "attribute_not_exists")
+        .execute()
+    ).rejects.toMatchInlineSnapshot(
+      `[ConditionalCheckFailedException: The conditional request failed]`
+    );
+  });
+
+  it.todo("handles 'contains' ConditionExpression");
 });

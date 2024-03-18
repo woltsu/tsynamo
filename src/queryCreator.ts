@@ -77,6 +77,10 @@ export class QueryCreator<DDB> {
           kind: "TableNode",
           table,
         },
+        conditionExpression: {
+          kind: "ExpressionNode",
+          expressions: [],
+        },
       },
       ddbClient: this.#props.ddbClient,
       queryCompiler: this.#props.queryCompiler,

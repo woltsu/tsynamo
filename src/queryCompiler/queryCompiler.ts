@@ -106,12 +106,37 @@ export class QueryCompiler {
       table: tableNode,
       item: itemNode,
       returnValues: returnValuesNode,
+      conditionExpression: conditionExpressionNode,
     } = putNode;
+
+    const attributeNames = new Map();
+    const filterExpressionAttributeValues = new Map();
+
+    const compiledConditionExpression = this.compileExpression(
+      conditionExpressionNode,
+      filterExpressionAttributeValues,
+      attributeNames
+    );
 
     return new PutCommand({
       TableName: tableNode.table,
       Item: itemNode?.item,
       ReturnValues: returnValuesNode?.option,
+      ConditionExpression: compiledConditionExpression
+        ? compiledConditionExpression
+        : undefined,
+      ExpressionAttributeValues:
+        filterExpressionAttributeValues.size > 0
+          ? {
+              ...Object.fromEntries(filterExpressionAttributeValues),
+            }
+          : undefined,
+      ExpressionAttributeNames:
+        attributeNames.size > 0
+          ? {
+              ...Object.fromEntries(attributeNames),
+            }
+          : undefined,
     });
   }
 
