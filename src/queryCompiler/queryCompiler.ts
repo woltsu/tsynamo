@@ -1,4 +1,4 @@
-import { GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FilterExpressionJoinTypeNode } from "../nodes/filterExpressionJoinTypeNode";
 import { FilterExpressionNode } from "../nodes/filterExpressionNode";
 import { GetNode } from "../nodes/getNode";
@@ -10,16 +10,20 @@ import {
   mergeObjectIntoMap,
 } from "./compilerUtil";
 import { AttributesNode } from "../nodes/attributesNode";
+import { PutNode } from "../nodes/putNode";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
   compile(rootNode: GetNode): GetCommand;
-  compile(rootNode: QueryNode | GetNode) {
+  compile(rootNode: PutNode): PutCommand;
+  compile(rootNode: QueryNode | GetNode | PutNode) {
     switch (rootNode.kind) {
       case "GetNode":
         return this.compileGetNode(rootNode);
       case "QueryNode":
         return this.compileQueryNode(rootNode);
+      case "PutNode":
+        return this.compilePutNode(rootNode);
     }
   }
 
@@ -94,6 +98,20 @@ export class QueryCompiler {
               ...ExpressionAttributeNames,
             }
           : undefined,
+    });
+  }
+
+  compilePutNode(putNode: PutNode) {
+    const {
+      table: tableNode,
+      item: itemNode,
+      returnValues: returnValuesNode,
+    } = putNode;
+
+    return new PutCommand({
+      TableName: tableNode.table,
+      Item: itemNode?.item,
+      ReturnValues: returnValuesNode?.option,
     });
   }
 
