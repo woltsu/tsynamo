@@ -389,6 +389,71 @@ export interface ExpressionBuilderInterfaceWithOnlyExpressionOperations<
   _getNode(): ExpressionNode;
 }
 
+export type ComparatorExprArg<DDB, Table extends keyof DDB, Key> = [
+  key: Key,
+  operation: ExpressionConditionComparators,
+  value: StripKeys<GetFromPath<DDB[Table], Key>>
+];
+
+export type AttributeFuncExprArg<Key> = [
+  key: Key,
+  func: Extract<FunctionExpression, "attribute_exists" | "attribute_not_exists">
+];
+
+export type AttributeBeginsWithExprArg<Key> = [
+  key: Key,
+  func: Extract<FunctionExpression, "begins_with">,
+  substr: string
+];
+
+export type AttributeContainsExprArg<DDB, Table extends keyof DDB, Key> = [
+  key: Key,
+  expr: Extract<FunctionExpression, "contains">,
+  value: GetFromPath<DDB[Table], Key> extends unknown[]
+    ? StripKeys<GetFromPath<DDB[Table], Key>>[number]
+    : never
+];
+
+export type AttributeBetweenExprArg<DDB, Table extends keyof DDB, Key> = [
+  key: Key,
+  expr: BetweenExpression,
+  left: StripKeys<GetFromPath<DDB[Table], Key>>,
+  right: StripKeys<GetFromPath<DDB[Table], Key>>
+];
+
+export type NotExprArg<
+  DDB,
+  Table extends keyof DDB,
+  O,
+  AllowKeysInExpression = true
+> = [
+  not: NotExpression,
+  builder: (
+    qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
+      DDB,
+      Table,
+      O,
+      AllowKeysInExpression
+    >
+  ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
+];
+
+export type BuilderExprArg<
+  DDB,
+  Table extends keyof DDB,
+  O,
+  AllowKeysInExpression = true
+> = [
+  builder: (
+    qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
+      DDB,
+      Table,
+      O,
+      AllowKeysInExpression
+    >
+  ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
+];
+
 export type ExprArgs<
   DDB,
   Table extends keyof DDB,
@@ -396,54 +461,13 @@ export type ExprArgs<
   Key,
   AllowKeysInExpression = true
 > =
-  | [
-      key: Key,
-      operation: ExpressionConditionComparators,
-      value: StripKeys<GetFromPath<DDB[Table], Key>>
-    ]
-  | [
-      key: Exclude<Key, "NOT">,
-      func: Extract<
-        FunctionExpression,
-        "attribute_exists" | "attribute_not_exists"
-      >
-    ]
-  | [key: Key, func: Extract<FunctionExpression, "begins_with">, substr: string]
-  | [
-      key: Key,
-      expr: Extract<FunctionExpression, "contains">,
-      value: GetFromPath<DDB[Table], Key> extends unknown[]
-        ? StripKeys<GetFromPath<DDB[Table], Key>>[number]
-        : never
-    ]
-  | [
-      key: Key,
-      expr: BetweenExpression,
-      left: StripKeys<GetFromPath<DDB[Table], Key>>,
-      right: StripKeys<GetFromPath<DDB[Table], Key>>
-    ]
-  | [
-      not: NotExpression,
-      builder: (
-        qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-          DDB,
-          Table,
-          O,
-          AllowKeysInExpression
-        >
-      ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-    ]
-  | [
-      builder: (
-        qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-          DDB,
-          Table,
-          O,
-          AllowKeysInExpression
-        >
-      ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-    ];
-
+  | ComparatorExprArg<DDB, Table, Key>
+  | AttributeFuncExprArg<Key>
+  | AttributeBeginsWithExprArg<Key>
+  | AttributeContainsExprArg<DDB, Table, Key>
+  | AttributeBetweenExprArg<DDB, Table, Key>
+  | BuilderExprArg<DDB, Table, O, AllowKeysInExpression>
+  | NotExprArg<DDB, Table, O, AllowKeysInExpression>;
 export class ExpressionBuilder<
   DDB,
   Table extends keyof DDB,

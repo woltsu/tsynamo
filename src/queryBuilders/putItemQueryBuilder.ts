@@ -4,15 +4,75 @@ import { QueryCompiler } from "../queryCompiler";
 import { ExecuteOutput, ObjectKeyPaths, PickNonKeys } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
 import { ReturnValuesOptions } from "../nodes/returnValuesNode";
-import { ExprArgs, ExpressionBuilder } from "./expressionBuilder";
+import {
+  AttributeBeginsWithExprArg,
+  AttributeBetweenExprArg,
+  AttributeContainsExprArg,
+  AttributeFuncExprArg,
+  BuilderExprArg,
+  ComparatorExprArg,
+  ExprArgs,
+  ExpressionBuilder,
+  NotExprArg,
+} from "./expressionBuilder";
 
 export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
+  // conditionExpression
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    ...args: ExprArgs<DDB, Table, O, Key>
+    ...args: ComparatorExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeFuncExprArg<Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBeginsWithExprArg<Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeContainsExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBetweenExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: NotExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: BuilderExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  // orConditionExpression
+  orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: ComparatorExprArg<DDB, Table, Key>
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    ...args: ExprArgs<DDB, Table, O, Key>
+    ...args: AttributeFuncExprArg<Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBeginsWithExprArg<Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeContainsExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBetweenExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: NotExprArg<DDB, Table, Key>
+  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+
+  orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: BuilderExprArg<DDB, Table, Key>
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
   returnValues(

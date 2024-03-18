@@ -17,15 +17,65 @@ import {
   StripKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
-import { ExprArgs, ExpressionBuilder } from "./expressionBuilder";
+import { AttributeBeginsWithExprArg, AttributeBetweenExprArg, AttributeContainsExprArg, AttributeFuncExprArg, BuilderExprArg, ComparatorExprArg, ExprArgs, ExpressionBuilder, NotExprArg } from "./expressionBuilder";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
-  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args: ExprArgs<DDB, Table, O, Key, false>
+  // filterExpression
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: ComparatorExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
-    ...args: ExprArgs<DDB, Table, O, Key, false>
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeFuncExprArg<Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBeginsWithExprArg<Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeContainsExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBetweenExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: NotExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: BuilderExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  // orFilterExpression
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: ComparatorExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeFuncExprArg<Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBeginsWithExprArg<Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeContainsExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: AttributeBetweenExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: NotExprArg<DDB, Table, Key>
+  ): QueryQueryBuilderInterface<DDB, Table, O>;
+
+  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+    ...args: BuilderExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   /**
