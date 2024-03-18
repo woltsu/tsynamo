@@ -192,6 +192,10 @@ export const TEST_DATA = [
         name: "Sylvester J. Pussycat Sr.",
         age: 78,
       },
+      {
+        name: "Tommy the Cat",
+        age: 12,
+      },
     ],
   },
   {

@@ -12,7 +12,9 @@
   "scripts": {
     "build": "tsup ./src/index.ts",
     "tsc": "tsc",
-    "test": "vitest"
+    "test": "vitest --typecheck --watch false && pnpm test:integration",
+    "test:watch": "vitest --typecheck",
+    "test:integration": "vitest --config vitest.integration.config.mts"
   },
   "license": "MIT",
   "devDependencies": {
