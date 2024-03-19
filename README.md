@@ -195,7 +195,8 @@ await tsynamoClient
     userId: "123",
     eventId: 313,
   })
-  .conditionExpression("eventType", "begins_with", "LOG_")
+  .conditionExpression("userId", "attribute_not_exists")
+  .orConditionExpression("eventType", "begins_with", "LOG_")
   .execute();
 ```
 
