@@ -96,7 +96,7 @@ export class QueryCreator<DDB> {
 
   /**
    *
-   * @param table Table to perform the put item command to
+   * @param table Table to perform the delete item command to
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/DeleteItemCommand/
    */
