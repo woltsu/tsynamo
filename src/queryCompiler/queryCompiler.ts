@@ -1,6 +1,6 @@
-import { GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { FilterExpressionJoinTypeNode } from "../nodes/filterExpressionJoinTypeNode";
-import { FilterExpressionNode } from "../nodes/filterExpressionNode";
+import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { ExpressionJoinTypeNode } from "../nodes/expressionJoinTypeNode";
+import { ExpressionNode } from "../nodes/expressionNode";
 import { GetNode } from "../nodes/getNode";
 import { KeyConditionNode } from "../nodes/keyConditionNode";
 import { QueryNode } from "../nodes/queryNode";
@@ -10,16 +10,20 @@ import {
   mergeObjectIntoMap,
 } from "./compilerUtil";
 import { AttributesNode } from "../nodes/attributesNode";
+import { PutNode } from "../nodes/putNode";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
   compile(rootNode: GetNode): GetCommand;
-  compile(rootNode: QueryNode | GetNode) {
+  compile(rootNode: PutNode): PutCommand;
+  compile(rootNode: QueryNode | GetNode | PutNode) {
     switch (rootNode.kind) {
       case "GetNode":
         return this.compileGetNode(rootNode);
       case "QueryNode":
         return this.compileQueryNode(rootNode);
+      case "PutNode":
+        return this.compilePutNode(rootNode);
     }
   }
 
@@ -64,7 +68,7 @@ export class QueryCompiler {
       attributeNames
     );
 
-    const compiledFilterExpression = this.compileFilterExpression(
+    const compiledFilterExpression = this.compileExpression(
       filterExpressionNode,
       filterExpressionAttributeValues,
       attributeNames
@@ -92,6 +96,45 @@ export class QueryCompiler {
           ? {
               ...Object.fromEntries(attributeNames),
               ...ExpressionAttributeNames,
+            }
+          : undefined,
+    });
+  }
+
+  compilePutNode(putNode: PutNode) {
+    const {
+      table: tableNode,
+      item: itemNode,
+      returnValues: returnValuesNode,
+      conditionExpression: conditionExpressionNode,
+    } = putNode;
+
+    const attributeNames = new Map();
+    const filterExpressionAttributeValues = new Map();
+
+    const compiledConditionExpression = this.compileExpression(
+      conditionExpressionNode,
+      filterExpressionAttributeValues,
+      attributeNames
+    );
+
+    return new PutCommand({
+      TableName: tableNode.table,
+      Item: itemNode?.item,
+      ReturnValues: returnValuesNode?.option,
+      ConditionExpression: compiledConditionExpression
+        ? compiledConditionExpression
+        : undefined,
+      ExpressionAttributeValues:
+        filterExpressionAttributeValues.size > 0
+          ? {
+              ...Object.fromEntries(filterExpressionAttributeValues),
+            }
+          : undefined,
+      ExpressionAttributeNames:
+        attributeNames.size > 0
+          ? {
+              ...Object.fromEntries(attributeNames),
             }
           : undefined,
     });
@@ -133,8 +176,8 @@ export class QueryCompiler {
     };
   }
 
-  compileFilterExpression = (
-    expression: FilterExpressionNode,
+  compileExpression = (
+    expression: ExpressionNode,
     filterExpressionAttributeValues: Map<string, unknown>,
     attributeNames: Map<string, string>
   ) => {
@@ -156,7 +199,7 @@ export class QueryCompiler {
   };
 
   compileFilterExpressionJoinNodes = (
-    { expr }: FilterExpressionJoinTypeNode,
+    { expr }: ExpressionJoinTypeNode,
     filterExpressionAttributeValues: Map<string, unknown>,
     attributeNames: Map<string, string>
   ) => {
@@ -175,9 +218,9 @@ export class QueryCompiler {
     }
 
     switch (expr.kind) {
-      case "FilterExpressionNode": {
+      case "ExpressionNode": {
         res += "(";
-        res += this.compileFilterExpression(
+        res += this.compileExpression(
           expr,
           filterExpressionAttributeValues,
           attributeNames
@@ -186,15 +229,15 @@ export class QueryCompiler {
         break;
       }
 
-      case "FilterExpressionComparatorExpressions": {
+      case "ExpressionComparatorExpressions": {
         res += `${attributeName} ${expr.operation} ${attributeValue}`;
         filterExpressionAttributeValues.set(attributeValue, expr.value);
         break;
       }
 
-      case "FilterExpressionNotExpression": {
+      case "ExpressionNotExpression": {
         res += "NOT (";
-        res += this.compileFilterExpression(
+        res += this.compileExpression(
           expr.expr,
           filterExpressionAttributeValues,
           attributeNames

@@ -4,10 +4,6 @@ Type-friendly DynamoDB query builder! Inspired by [Kysely](https://github.com/ky
 
 Usable with AWS SDK v3 `DynamoDBDocumentClient`.
 
-> [!NOTE]
-> Currently this is a POC and a WIP. Currently, `get-item` and `query` operations are
-> supported, but I am planning to add support for the rest of the operations too.
-
 ![](https://github.com/woltsu/tsynamo/blob/main/assets/demo.gif)
 
 # Installation
@@ -163,11 +159,48 @@ await tsynamoClient
 > This would compile as the following FilterExpression:
 > `NOT eventType = "LOG_IN"`, i.e. return all events whose types is not "LOG_IN"
 
-## Delete item
-
-WIP
-
 ## Put item
+
+### Simple put item
+
+```ts
+await tsynamoClient
+  .putItem("myTable")
+  .item({
+    userId: "123",
+    eventId: 313,
+  })
+  .execute();
+```
+
+### Put item with ConditionExpression
+
+```ts
+await tsynamoClient
+  .putItem("myTable")
+  .item({
+    userId: "123",
+    eventId: 313,
+  })
+  .conditionExpression("userId", "attribute_not_exists")
+  .execute();
+```
+
+### Put item with multiple ConditionExpressions
+
+```ts
+await tsynamoClient
+  .putItem("myTable")
+  .item({
+    userId: "123",
+    eventId: 313,
+  })
+  .conditionExpression("userId", "attribute_not_exists")
+  .orConditionExpression("eventType", "begins_with", "LOG_")
+  .execute();
+```
+
+## Delete item
 
 WIP
 
@@ -180,6 +213,7 @@ WIP
 WIP
 
 # Contributors
+
 <p>
     <a href="https://github.com/woltsu/tsynamo/graphs/contributors">
         <img src="https://contrib.rocks/image?repo=woltsu/tsynamo" />

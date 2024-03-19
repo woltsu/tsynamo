@@ -3,18 +3,18 @@ import { AttributeNotExistsFunctionExpression } from "./attributeNotExistsFuncti
 import { BeginsWithFunctionExpression } from "./beginsWithFunctionExpression";
 import { BetweenConditionExpression } from "./betweenConditionExpression";
 import { ContainsFunctionExpression } from "./containsFunctionExpression";
-import { FilterExpressionComparatorExpressions } from "./filterExpressionComparatorExpression";
-import { FilterExpressionNode } from "./filterExpressionNode";
-import { FilterExpressionNotExpression } from "./filterExpressionNotExpression";
+import { ExpressionComparatorExpressions } from "./expressionComparatorExpression";
+import { ExpressionNode } from "./expressionNode";
+import { ExpressionNotExpression } from "./expressionNotExpression";
 
 export type JoinType = "AND" | "OR";
 
-export type FilterExpressionJoinTypeNode = {
-  readonly kind: "FilterExpressionJoinTypeNode";
+export type ExpressionJoinTypeNode = {
+  readonly kind: "ExpressionJoinTypeNode";
   readonly expr:
-    | FilterExpressionNode
-    | FilterExpressionComparatorExpressions
-    | FilterExpressionNotExpression
+    | ExpressionNode
+    | ExpressionComparatorExpressions
+    | ExpressionNotExpression
     | AttributeExistsFunctionExpression
     | AttributeNotExistsFunctionExpression
     | BetweenConditionExpression

@@ -1,6 +1,10 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
 import {
+  PutItemQueryBuilder,
+  PutItemQueryBuilderInterface,
+} from "./queryBuilders/putItemQueryBuilder";
+import {
   QueryQueryBuilder,
   QueryQueryBuilderInterface,
 } from "./queryBuilders/queryQueryBuilder";
@@ -36,6 +40,12 @@ export class QueryCreator<DDB> {
     });
   }
 
+  /**
+   *
+   * @param table Table to perform the query command to
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/QueryCommand/
+   */
   query<Table extends keyof DDB & string>(
     table: Table
   ): QueryQueryBuilderInterface<DDB, Table, DDB[Table]> {
@@ -48,7 +58,33 @@ export class QueryCreator<DDB> {
         },
         keyConditions: [],
         filterExpression: {
-          kind: "FilterExpressionNode",
+          kind: "ExpressionNode",
+          expressions: [],
+        },
+      },
+      ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
+    });
+  }
+
+  /**
+   *
+   * @param table Table to perform the put item command to
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/PutItemCommand/
+   */
+  putItem<Table extends keyof DDB & string>(
+    table: Table
+  ): PutItemQueryBuilderInterface<DDB, Table, DDB[Table]> {
+    return new PutItemQueryBuilder<DDB, Table, DDB[Table]>({
+      node: {
+        kind: "PutNode",
+        table: {
+          kind: "TableNode",
+          table,
+        },
+        conditionExpression: {
+          kind: "ExpressionNode",
           expressions: [],
         },
       },

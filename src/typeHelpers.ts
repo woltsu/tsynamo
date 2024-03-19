@@ -1,3 +1,4 @@
+import { DDB } from "../test/testFixture";
 import type { PartitionKey, SortKey } from "./ddbTypes";
 
 /**
