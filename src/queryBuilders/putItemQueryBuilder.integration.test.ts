@@ -1,8 +1,8 @@
-import { DDB, TEST_DATA } from "../../test/testFixture";
+import { DDB } from "../../test/testFixture";
 import { getDDBClientFor, startDDBTestContainer } from "../../test/testUtil";
 import { Tsynamo } from "./../index";
 
-describe("GetItemQueryBuilder", () => {
+describe("PutItemQueryBuilder", () => {
   let tsynamoClient: Tsynamo<DDB>;
 
   const itemToPut = {
@@ -78,5 +78,69 @@ describe("GetItemQueryBuilder", () => {
     );
   });
 
-  it.todo("handles 'contains' ConditionExpression");
+  it("handles 'contains' ConditionExpression", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "333",
+        dataTimestamp: 212,
+        tags: ["cats"],
+      })
+      .execute();
+
+    const oldValues = await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "333",
+        dataTimestamp: 212,
+        tags: ["cats"],
+      })
+      .conditionExpression("tags", "contains", "cats")
+      .returnValues("ALL_OLD")
+      .execute();
+
+    expect(oldValues).toBeTruthy();
+    expect(oldValues).toMatchSnapshot();
+
+    expect(
+      tsynamoClient
+        .putItem("myTable")
+        .item({
+          userId: "333",
+          dataTimestamp: 212,
+        })
+        .conditionExpression("NOT", (qb) =>
+          qb.expression("tags", "contains", "cats")
+        )
+        .execute()
+    ).rejects.toMatchInlineSnapshot(
+      `[ConditionalCheckFailedException: The conditional request failed]`
+    );
+  });
+
+  it("Handles nested ConditionExpressions", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "333",
+        dataTimestamp: 212,
+        nested: {
+          nestedBoolean: false,
+        },
+      })
+      .execute();
+
+    expect(
+      tsynamoClient
+        .putItem("myTable")
+        .item({
+          userId: "333",
+          dataTimestamp: 212,
+        })
+        .conditionExpression("nested.nestedBoolean", "=", true)
+        .execute()
+    ).rejects.toMatchInlineSnapshot(
+      `[ConditionalCheckFailedException: The conditional request failed]`
+    );
+  });
 });

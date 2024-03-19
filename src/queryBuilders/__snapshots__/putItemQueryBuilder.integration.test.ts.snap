@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PutItemQueryBuilder > handles 'contains' ConditionExpression 1`] = `
+{
+  "dataTimestamp": 212,
+  "tags": [
+    "cats",
+  ],
+  "userId": "333",
+}
+`;
