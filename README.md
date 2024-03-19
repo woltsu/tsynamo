@@ -64,7 +64,7 @@ const tsynamoClient = new Tsynamo<DDB>({
 
 ```ts
 await tsynamoClient
-  .getItemFrom("UserEvents")
+  .getItem("UserEvents")
   .keys({
     userId: "123",
     eventId: 222,
@@ -202,7 +202,30 @@ await tsynamoClient
 
 ## Delete item
 
-WIP
+### Simple delete item
+
+```ts
+await tsynamoClient
+  .deleteItem("myTable")
+  .keys({
+    userId: "123",
+    eventId: 313,
+  })
+  .execute();
+```
+
+### Simple delete item with ConditionExpression
+
+```ts
+await tsynamoClient
+  .deleteItem("myTable")
+  .keys({
+    userId: "123",
+    eventId: 313,
+  })
+  .conditionExpression("eventType", "attribute_not_exists")
+  .execute();
+```
 
 ## Update item
 

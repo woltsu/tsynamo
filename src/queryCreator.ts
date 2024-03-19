@@ -1,4 +1,5 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DeleteItemQueryBuilder } from "./queryBuilders/deleteItemQueryBuilder";
 import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
 import {
   PutItemQueryBuilder,
@@ -24,7 +25,7 @@ export class QueryCreator<DDB> {
    * @see https://docs.aws.amazon.com/cli/latest/reference/dynamodb/get-item.html
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/GetItemCommand/
    */
-  getItemFrom<Table extends keyof DDB & string>(
+  getItem<Table extends keyof DDB & string>(
     table: Table
   ): GetQueryBuilder<DDB, Table, DDB[Table]> {
     return new GetQueryBuilder<DDB, Table, DDB[Table]>({
@@ -79,6 +80,32 @@ export class QueryCreator<DDB> {
     return new PutItemQueryBuilder<DDB, Table, DDB[Table]>({
       node: {
         kind: "PutNode",
+        table: {
+          kind: "TableNode",
+          table,
+        },
+        conditionExpression: {
+          kind: "ExpressionNode",
+          expressions: [],
+        },
+      },
+      ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
+    });
+  }
+
+  /**
+   *
+   * @param table Table to perform the delete item command to
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/DeleteItemCommand/
+   */
+  deleteItem<Table extends keyof DDB & string>(
+    table: Table
+  ): DeleteItemQueryBuilder<DDB, Table, DDB[Table]> {
+    return new DeleteItemQueryBuilder<DDB, Table, DDB[Table]>({
+      node: {
+        kind: "DeleteNode",
         table: {
           kind: "TableNode",
           table,

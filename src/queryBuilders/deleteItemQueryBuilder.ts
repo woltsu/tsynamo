@@ -1,9 +1,14 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { PutNode } from "../nodes/putNode";
-import { QueryCompiler } from "../queryCompiler";
-import { ExecuteOutput, ObjectKeyPaths, PickNonKeys } from "../typeHelpers";
-import { preventAwait } from "../util/preventAwait";
+import { DeleteNode } from "../nodes/deleteNode";
 import { ReturnValuesOptions } from "../nodes/returnValuesNode";
+import { QueryCompiler } from "../queryCompiler";
+import {
+  ExecuteOutput,
+  ObjectKeyPaths,
+  PickPk,
+  PickSkRequired,
+} from "../typeHelpers";
+import { preventAwait } from "../util/preventAwait";
 import {
   AttributeBeginsWithExprArg,
   AttributeBetweenExprArg,
@@ -16,98 +21,109 @@ import {
   NotExprArg,
 } from "./expressionBuilder";
 
-export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
+export interface DeleteItemQueryBuilderInterface<
+  DDB,
+  Table extends keyof DDB,
+  O
+> {
   // conditionExpression
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   // orConditionExpression
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
-  item<Item extends ExecuteOutput<O>>(
-    item: Item
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  returnValuesOnConditionCheckFailure(
+    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+
+  keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
+    pk: Keys
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 
-export class PutItemQueryBuilder<
+/**
+ * @todo support ReturnValuesOnConditionCheckFailure
+ */
+export class DeleteItemQueryBuilder<
   DDB,
   Table extends keyof DDB,
   O extends DDB[Table]
-> implements PutItemQueryBuilderInterface<DDB, Table, O>
+> implements DeleteItemQueryBuilderInterface<DDB, Table, O>
 {
-  readonly #props: PutItemQueryBuilderProps;
+  readonly #props: DeleteItemQueryBuilderProps;
 
-  constructor(props: PutItemQueryBuilderProps) {
+  constructor(props: DeleteItemQueryBuilderProps) {
     this.#props = props;
   }
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
 
     const expressionNode = eB.expression(...args)._getNode();
 
-    return new PutItemQueryBuilder<DDB, Table, O>({
+    return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -118,14 +134,14 @@ export class PutItemQueryBuilder<
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
 
     const expressionNode = eB.orExpression(...args)._getNode();
 
-    return new PutItemQueryBuilder<DDB, Table, O>({
+    return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -134,25 +150,10 @@ export class PutItemQueryBuilder<
     });
   }
 
-  item<Item extends ExecuteOutput<O>>(
-    item: Item
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
-    return new PutItemQueryBuilder<DDB, Table, O>({
-      ...this.#props,
-      node: {
-        ...this.#props.node,
-        item: {
-          kind: "ItemNode",
-          item,
-        },
-      },
-    });
-  }
-
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
-    return new PutItemQueryBuilder<DDB, Table, O>({
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+    return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -164,20 +165,50 @@ export class PutItemQueryBuilder<
     });
   }
 
+  returnValuesOnConditionCheckFailure(
+    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+    return new DeleteItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        returnValuesOnConditionCheckFailure: {
+          kind: "ReturnValuesNode",
+          option,
+        },
+      },
+    });
+  }
+
+  keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
+    keys: Keys
+  ) {
+    return new DeleteItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        keys: {
+          kind: "KeysNode",
+          keys,
+        },
+      },
+    });
+  }
+
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
-    const putCommand = this.#props.queryCompiler.compile(this.#props.node);
-    const data = await this.#props.ddbClient.send(putCommand);
+    const deleteCommand = this.#props.queryCompiler.compile(this.#props.node);
+    const data = await this.#props.ddbClient.send(deleteCommand);
     return data.Attributes as any;
   };
 }
 
 preventAwait(
-  PutItemQueryBuilder,
-  "Don't await PutQueryBuilder instances directly. To execute the query you need to call the `execute` method"
+  DeleteItemQueryBuilder,
+  "Don't await DeleteItemQueryBuilder instances directly. To execute the query you need to call the `execute` method"
 );
 
-interface PutItemQueryBuilderProps {
-  readonly node: PutNode;
+interface DeleteItemQueryBuilderProps {
+  readonly node: DeleteNode;
   readonly ddbClient: DynamoDBDocumentClient;
   readonly queryCompiler: QueryCompiler;
 }

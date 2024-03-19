@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DeleteItemQueryBuilder > handles a simple delete query 1`] = `
+{
+  "dataTimestamp": 2,
+  "userId": "1",
+}
+`;

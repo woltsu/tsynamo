@@ -21,7 +21,7 @@ describe("PutItemQueryBuilder", () => {
 
   it("handles a simple put query", async () => {
     let result = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({
         userId: itemToPut.userId,
         dataTimestamp: itemToPut.dataTimestamp,
@@ -33,7 +33,7 @@ describe("PutItemQueryBuilder", () => {
     await tsynamoClient.putItem("myTable").item(itemToPut).execute();
 
     result = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({
         userId: "333",
         dataTimestamp: 222,
