@@ -23,7 +23,7 @@ describe("DeleteItemQueryBuilder", () => {
       .execute();
 
     const itemBeforeDeletion = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({ userId: "1", dataTimestamp: 2 })
       .execute();
 
@@ -41,10 +41,49 @@ describe("DeleteItemQueryBuilder", () => {
     expect(deleteResponse).toMatchSnapshot();
 
     const itemAfterDeletion = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({ userId: "1", dataTimestamp: 2 })
       .execute();
 
     expect(itemAfterDeletion).toBeUndefined();
+  });
+
+  it("handles a delete query with a ConditionExpression", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1",
+        dataTimestamp: 2,
+        tags: ["meow"],
+        someBoolean: true,
+      })
+      .execute();
+
+    expect(
+      tsynamoClient
+        .deleteItem("myTable")
+        .keys({
+          userId: "1",
+          dataTimestamp: 2,
+        })
+        .conditionExpression("NOT", (qb) => {
+          return qb.expression("tags", "contains", "meow");
+        })
+        .execute()
+    ).rejects.toMatchInlineSnapshot(
+      `[ConditionalCheckFailedException: The conditional request failed]`
+    );
+
+    const res = await tsynamoClient
+      .deleteItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .conditionExpression("NOT", (qb) => {
+        return qb.expression("tags", "contains", "meow");
+      })
+      .orConditionExpression("someBoolean", "attribute_exists")
+      .returnValues("ALL_OLD")
+      .execute();
+
+    expect(res).toBeDefined();
   });
 });

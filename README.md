@@ -64,7 +64,7 @@ const tsynamoClient = new Tsynamo<DDB>({
 
 ```ts
 await tsynamoClient
-  .getItemFrom("UserEvents")
+  .getItem("UserEvents")
   .keys({
     userId: "123",
     eventId: 222,

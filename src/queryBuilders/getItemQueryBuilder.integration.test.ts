@@ -15,7 +15,7 @@ describe("GetItemQueryBuilder", () => {
 
   it("handles a basic get item command", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({
         userId: TEST_DATA[1].userId,
         dataTimestamp: TEST_DATA[1].dataTimestamp,
@@ -27,7 +27,7 @@ describe("GetItemQueryBuilder", () => {
 
   it("handles selecting specific attributes", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({
         userId: TEST_DATA[0].userId,
         dataTimestamp: TEST_DATA[0].dataTimestamp,
@@ -43,7 +43,7 @@ describe("GetItemQueryBuilder", () => {
 
   it("handles selecting nested attributes", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({
         userId: TEST_DATA[4].userId,
         dataTimestamp: TEST_DATA[4].dataTimestamp,
@@ -59,7 +59,7 @@ describe("GetItemQueryBuilder", () => {
 
   it("handles selecting deeply nested attributes", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myTable")
+      .getItem("myTable")
       .keys({
         userId: TEST_DATA[8].userId,
         dataTimestamp: TEST_DATA[8].dataTimestamp,
@@ -77,7 +77,7 @@ describe("GetItemQueryBuilder", () => {
 
   it("handles selecting attributes from arrays", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myOtherTable")
+      .getItem("myOtherTable")
       .keys({
         userId: TEST_DATA[6].userId,
         stringTimestamp: "123",
@@ -92,7 +92,7 @@ describe("GetItemQueryBuilder", () => {
   });
   it("handles selecting attributes from tuples", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myOtherTable")
+      .getItem("myOtherTable")
       .keys({
         userId: TEST_DATA[6].userId,
         stringTimestamp: "123",
@@ -106,7 +106,7 @@ describe("GetItemQueryBuilder", () => {
   });
   it("handles selecting multiple attributes from tuples", async () => {
     const data = await tsynamoClient
-      .getItemFrom("myOtherTable")
+      .getItem("myOtherTable")
       .keys({
         userId: TEST_DATA[6].userId,
         stringTimestamp: "123",
@@ -123,7 +123,7 @@ describe("GetItemQueryBuilder", () => {
     expect(
       async () =>
         await tsynamoClient
-          .getItemFrom("myTable")
+          .getItem("myTable")
           .keys({
             userId: TEST_DATA[0].userId,
             dataTimestamp: TEST_DATA[0].dataTimestamp,

@@ -96,7 +96,7 @@ export interface DeleteItemQueryBuilderInterface<
 }
 
 /**
- * @todo support ConditionExpression
+ * @todo support ReturnValuesOnConditionCheckFailure
  */
 export class DeleteItemQueryBuilder<
   DDB,

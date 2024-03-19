@@ -86,9 +86,6 @@ export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 
-/**
- * @todo support ConditionExpression
- */
 export class PutItemQueryBuilder<
   DDB,
   Table extends keyof DDB,

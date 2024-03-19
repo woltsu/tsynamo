@@ -25,7 +25,7 @@ export class QueryCreator<DDB> {
    * @see https://docs.aws.amazon.com/cli/latest/reference/dynamodb/get-item.html
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/GetItemCommand/
    */
-  getItemFrom<Table extends keyof DDB & string>(
+  getItem<Table extends keyof DDB & string>(
     table: Table
   ): GetQueryBuilder<DDB, Table, DDB[Table]> {
     return new GetQueryBuilder<DDB, Table, DDB[Table]>({
