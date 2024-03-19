@@ -1,4 +1,9 @@
-import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DeleteCommand,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { ExpressionJoinTypeNode } from "../nodes/expressionJoinTypeNode";
 import { ExpressionNode } from "../nodes/expressionNode";
 import { GetNode } from "../nodes/getNode";
@@ -11,12 +16,14 @@ import {
 } from "./compilerUtil";
 import { AttributesNode } from "../nodes/attributesNode";
 import { PutNode } from "../nodes/putNode";
+import { DeleteNode } from "../nodes/deleteNode";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
   compile(rootNode: GetNode): GetCommand;
   compile(rootNode: PutNode): PutCommand;
-  compile(rootNode: QueryNode | GetNode | PutNode) {
+  compile(rootNode: DeleteNode): DeleteCommand;
+  compile(rootNode: QueryNode | GetNode | PutNode | DeleteNode) {
     switch (rootNode.kind) {
       case "GetNode":
         return this.compileGetNode(rootNode);
@@ -24,6 +31,8 @@ export class QueryCompiler {
         return this.compileQueryNode(rootNode);
       case "PutNode":
         return this.compilePutNode(rootNode);
+      case "DeleteNode":
+        return this.compileDeleteNode(rootNode);
     }
   }
 
@@ -121,6 +130,45 @@ export class QueryCompiler {
     return new PutCommand({
       TableName: tableNode.table,
       Item: itemNode?.item,
+      ReturnValues: returnValuesNode?.option,
+      ConditionExpression: compiledConditionExpression
+        ? compiledConditionExpression
+        : undefined,
+      ExpressionAttributeValues:
+        filterExpressionAttributeValues.size > 0
+          ? {
+              ...Object.fromEntries(filterExpressionAttributeValues),
+            }
+          : undefined,
+      ExpressionAttributeNames:
+        attributeNames.size > 0
+          ? {
+              ...Object.fromEntries(attributeNames),
+            }
+          : undefined,
+    });
+  }
+
+  compileDeleteNode(deleteNode: DeleteNode) {
+    const {
+      table: tableNode,
+      returnValues: returnValuesNode,
+      keys: keysNode,
+      conditionExpression: conditionExpressionNode,
+    } = deleteNode;
+
+    const attributeNames = new Map();
+    const filterExpressionAttributeValues = new Map();
+
+    const compiledConditionExpression = this.compileExpression(
+      conditionExpressionNode,
+      filterExpressionAttributeValues,
+      attributeNames
+    );
+
+    return new DeleteCommand({
+      TableName: tableNode.table,
+      Key: keysNode?.keys,
       ReturnValues: returnValuesNode?.option,
       ConditionExpression: compiledConditionExpression
         ? compiledConditionExpression
