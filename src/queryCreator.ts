@@ -67,6 +67,12 @@ export class QueryCreator<DDB> {
     });
   }
 
+  /**
+   *
+   * @param table Table to perform the put item command to
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/PutItemCommand/
+   */
   putItem<Table extends keyof DDB & string>(
     table: Table
   ): PutItemQueryBuilderInterface<DDB, Table, DDB[Table]> {
