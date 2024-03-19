@@ -18,373 +18,125 @@ import {
   StripKeys,
 } from "../typeHelpers";
 
-export interface ExpressionBuilderInterface<DDB, Table extends keyof DDB, O> {
-  // Regular operand
-  expression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Exclude<Key, "NOT">,
-    operation: Key extends NotExpression
-      ? never
-      : ExpressionConditionComparators,
-    val: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // function expression for functions that only take path as param
-  expression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Exclude<Key, "NOT">,
-    func: Extract<
-      FunctionExpression,
-      "attribute_exists" | "attribute_not_exists"
-    >
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // CONTAINS function expression
-  expression<
-    Key extends ObjectKeyPaths<DDB[Table]>,
-    Property extends GetFromPath<DDB[Table], Key> & unknown[]
-  >(
-    key: Key,
-    expr: Extract<FunctionExpression, "contains">,
-    value: StripKeys<Property>[number]
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // BEGINS_WITH function expression
-  expression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Key,
-    expr: Extract<FunctionExpression, "begins_with">,
-    substr: string
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // BETWEEN expression
-  expression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Key,
-    expr: BetweenExpression,
-    left: StripKeys<GetFromPath<DDB[Table], Key>>,
-    right: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // NOT expression
-  expression(
-    not: NotExpression,
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // Nested expression
-  expression(
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  // Or expressions
-  orExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Key,
-    operation: ExpressionConditionComparators,
-    val: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  orExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Exclude<Key, "NOT">,
-    func: Extract<
-      FunctionExpression,
-      "attribute_exists" | "attribute_not_exists"
-    >
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  orExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Key,
-    func: Extract<FunctionExpression, "begins_with">,
-    substr: string
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  orExpression<
-    Key extends ObjectKeyPaths<DDB[Table]>,
-    Property extends GetFromPath<DDB[Table], Key> & unknown[]
-  >(
-    key: Key,
-    expr: Extract<FunctionExpression, "contains">,
-    value: StripKeys<Property>[number]
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  orExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    key: Key,
-    expr: BetweenExpression,
-    left: StripKeys<GetFromPath<DDB[Table], Key>>,
-    right: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  orExpression(
-    not: NotExpression,
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  orExpression(
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
-  ): ExpressionBuilderInterface<DDB, Table, O>;
-
-  _getNode(): ExpressionNode;
-}
-
-export interface ExpressionBuilderInterfaceWithOnlyExpressionOperations<
+export interface ExpressionBuilderInterface<
   DDB,
   Table extends keyof DDB,
   O,
-  AllowKeys = true
+  AllowKeys = false
 > {
-  /**
-   * expression methods
-   */
+  // expression
   expression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Key,
-    operation: ExpressionConditionComparators,
-    val: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: ComparatorExprArg<DDB, Table, Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   expression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Exclude<Key, "NOT">,
-    func: Extract<
-      FunctionExpression,
-      "attribute_exists" | "attribute_not_exists"
-    >
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: AttributeFuncExprArg<Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   expression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Key,
-    func: Extract<FunctionExpression, "begins_with">,
-    substr: string
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
-
-  expression<
-    Key extends ObjectKeyPaths<
-      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
-    >,
-    Property extends GetFromPath<DDB[Table], Key> & unknown[]
-  >(
-    key: Key,
-    expr: Extract<FunctionExpression, "contains">,
-    value: StripKeys<Property>[number]
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: AttributeBeginsWithExprArg<Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   expression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Key,
-    expr: BetweenExpression,
-    left: StripKeys<GetFromPath<DDB[Table], Key>>,
-    right: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: AttributeContainsExprArg<DDB, Table, Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
-  expression(
-    not: NotExpression,
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-        DDB,
-        Table,
-        O,
-        AllowKeys
-      >
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-      DDB,
-      Table,
-      O,
-      AllowKeys
+  expression<
+    Key extends ObjectKeyPaths<
+      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+  >(
+    ...args: AttributeBetweenExprArg<DDB, Table, Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
-  expression(
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-        DDB,
-        Table,
-        O,
-        AllowKeys
-      >
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-      DDB,
-      Table,
-      O,
-      AllowKeys
+  expression<
+    Key extends ObjectKeyPaths<
+      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+  >(
+    ...args: NotExprArg<DDB, Table, Key, AllowKeys>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
-  /**
-   * orExpression methods
-   */
+  expression<
+    Key extends ObjectKeyPaths<
+      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
+    >
+  >(
+    ...args: BuilderExprArg<DDB, Table, Key, AllowKeys>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
+
+  // orExpression
   orExpression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Key,
-    operation: ExpressionConditionComparators,
-    val: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: ComparatorExprArg<DDB, Table, Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   orExpression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Exclude<Key, "NOT">,
-    func: Extract<
-      FunctionExpression,
-      "attribute_exists" | "attribute_not_exists"
-    >
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: AttributeFuncExprArg<Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   orExpression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Key,
-    func: Extract<FunctionExpression, "begins_with">,
-    substr: string
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
-
-  orExpression<
-    Key extends ObjectKeyPaths<
-      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
-    >,
-    Property extends GetFromPath<DDB[Table], Key> & unknown[]
-  >(
-    key: Key,
-    expr: Extract<FunctionExpression, "contains">,
-    value: StripKeys<Property>[number]
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: AttributeBeginsWithExprArg<Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   orExpression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
   >(
-    key: Key,
-    expr: BetweenExpression,
-    left: StripKeys<GetFromPath<DDB[Table], Key>>,
-    right: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+    ...args: AttributeContainsExprArg<DDB, Table, Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
-  orExpression(
-    not: NotExpression,
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-        DDB,
-        Table,
-        O,
-        AllowKeys
-      >
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-      DDB,
-      Table,
-      O,
-      AllowKeys
+  orExpression<
+    Key extends ObjectKeyPaths<
+      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+  >(
+    ...args: AttributeBetweenExprArg<DDB, Table, Key>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
-  orExpression(
-    builder: (
-      qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-        DDB,
-        Table,
-        O,
-        AllowKeys
-      >
-    ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-      DDB,
-      Table,
-      O,
-      AllowKeys
+  orExpression<
+    Key extends ObjectKeyPaths<
+      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
     >
-  ): ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-    DDB,
-    Table,
-    O,
-    AllowKeys
-  >;
+  >(
+    ...args: NotExprArg<DDB, Table, Key, AllowKeys>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
+
+  orExpression<
+    Key extends ObjectKeyPaths<
+      AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>
+    >
+  >(
+    ...args: BuilderExprArg<DDB, Table, Key, AllowKeys>
+  ): ExpressionBuilderInterface<DDB, Table, O, AllowKeys>;
 
   _getNode(): ExpressionNode;
 }
@@ -429,13 +181,8 @@ export type NotExprArg<
 > = [
   not: NotExpression,
   builder: (
-    qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-      DDB,
-      Table,
-      O,
-      AllowKeysInExpression
-    >
-  ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
+    qb: ExpressionBuilderInterface<DDB, Table, O, AllowKeysInExpression>
+  ) => ExpressionBuilderInterface<DDB, Table, O, AllowKeysInExpression>
 ];
 
 export type BuilderExprArg<
@@ -445,13 +192,8 @@ export type BuilderExprArg<
   AllowKeysInExpression = true
 > = [
   builder: (
-    qb: ExpressionBuilderInterfaceWithOnlyExpressionOperations<
-      DDB,
-      Table,
-      O,
-      AllowKeysInExpression
-    >
-  ) => ExpressionBuilderInterfaceWithOnlyExpressionOperations<DDB, Table, O>
+    qb: ExpressionBuilderInterface<DDB, Table, O, AllowKeysInExpression>
+  ) => ExpressionBuilderInterface<DDB, Table, O, AllowKeysInExpression>
 ];
 
 export type ExprArgs<

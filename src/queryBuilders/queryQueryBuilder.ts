@@ -17,64 +17,74 @@ import {
   StripKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
-import { AttributeBeginsWithExprArg, AttributeBetweenExprArg, AttributeContainsExprArg, AttributeFuncExprArg, BuilderExprArg, ComparatorExprArg, ExprArgs, ExpressionBuilder, NotExprArg } from "./expressionBuilder";
+import {
+  AttributeBeginsWithExprArg,
+  AttributeBetweenExprArg,
+  AttributeContainsExprArg,
+  AttributeFuncExprArg,
+  BuilderExprArg,
+  ComparatorExprArg,
+  ExprArgs,
+  ExpressionBuilder,
+  NotExprArg,
+} from "./expressionBuilder";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   // filterExpression
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeFuncExprArg<Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeBeginsWithExprArg<Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    ...args: NotExprArg<DDB, Table, Key>
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    ...args: NotExprArg<DDB, Table, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  filterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
-    ...args: BuilderExprArg<DDB, Table, Key>
+  filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    ...args: BuilderExprArg<DDB, Table, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   // orFilterExpression
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeFuncExprArg<Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeBeginsWithExprArg<Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: NotExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  orFilterExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: BuilderExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
