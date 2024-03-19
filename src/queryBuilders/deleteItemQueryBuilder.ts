@@ -88,6 +88,10 @@ export interface DeleteItemQueryBuilderInterface<
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
   ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
+  returnValuesOnConditionCheckFailure(
+    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
   ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
@@ -154,6 +158,21 @@ export class DeleteItemQueryBuilder<
       node: {
         ...this.#props.node,
         returnValues: {
+          kind: "ReturnValuesNode",
+          option,
+        },
+      },
+    });
+  }
+
+  returnValuesOnConditionCheckFailure(
+    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
+  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+    return new DeleteItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        returnValuesOnConditionCheckFailure: {
           kind: "ReturnValuesNode",
           option,
         },

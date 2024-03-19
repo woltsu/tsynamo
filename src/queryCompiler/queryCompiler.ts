@@ -153,6 +153,8 @@ export class QueryCompiler {
     const {
       table: tableNode,
       returnValues: returnValuesNode,
+      returnValuesOnConditionCheckFailure:
+        returnValuesOnConditionCheckFailureNode,
       keys: keysNode,
       conditionExpression: conditionExpressionNode,
     } = deleteNode;
@@ -170,6 +172,8 @@ export class QueryCompiler {
       TableName: tableNode.table,
       Key: keysNode?.keys,
       ReturnValues: returnValuesNode?.option,
+      ReturnValuesOnConditionCheckFailure:
+        returnValuesOnConditionCheckFailureNode?.option,
       ConditionExpression: compiledConditionExpression
         ? compiledConditionExpression
         : undefined,
