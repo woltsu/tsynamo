@@ -1,12 +1,46 @@
-# Tsynamo
+<p align="center">
+  <img src="assets/logo.png" width="200px" align="center" alt="Tsynamo logo" />
+  <h1 align="center">Tsynamo</h1>
+  <p align="center">
+    ✨ Type-friendly DynamoDB query builder! ✨
+    <br/>
+    Inspired by <a href="https://github.com/kysely-org/kysely/tree/master" rel="nofollow">Kysely</a>
+  </p>
+</p>
+<br/>
+<p align="center">
+<a href="https://github.com/woltsu/tsynamo/actions?query=branch%main"><img src="https://github.com/woltsu/tsynamo/actions/workflows/deploy.yml/badge.svg?event=push&branch=main" alt="Tsynamo CI status" /></a>
+<a href="https://www.npmjs.com/package/tsynamo"><img src="https://img.shields.io/npm/v/tsynamo.svg?style=flat&color=brightgreen" target="_blank" /></a>
+<a href="https://opensource.org/licenses/MIT" rel="nofollow"><img src="https://img.shields.io/github/license/woltsu/tsynamo" alt="License"></a>
+</p>
 
-Type-friendly DynamoDB query builder! Inspired by [Kysely](https://github.com/kysely-org/kysely/tree/master).
+![](assets/demo.gif)
 
-Usable with AWS SDK v3 `DynamoDBDocumentClient`.
+Tsynamo simplifies the DynamoDB API so that you don't have to write commands with raw expressions and hassle with the attribute names and values. Moreover, Tsynamo makes sure you use correct types in your DynamoDB expressions, and the queries are nicer to write with autocompletion!
 
-![](https://github.com/woltsu/tsynamo/blob/main/assets/demo.gif)
+> Tsynamo is still an early stage project, please post issues if you notice something missing from the API! Currently the `update-item` command is still a work in progress, and support for batch commands is missing.
 
-# Installation
+## Table of contents
+
+- [Table of contents](#table-of-contents)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Creating a Tsynamo client](#creating-a-tsynamo-client)
+  - [Get item](#get-item)
+  - [Query item](#query-item)
+  - [Put item](#put-item)
+  - [Delete item](#delete-item)
+  - [Update item](#update-item)
+- [Contributors](#contributors)
+
+
+## Requirements
+
+- [@aws-sdk/client-dynamodb](https://www.npmjs.com/package/@aws-sdk/client-dynamodb)
+- [@aws-sdk/lib-dynamodb](https://www.npmjs.com/package/@aws-sdk/lib-dynamodb)
+
+## Installation
 
 Available in [NPM](https://www.npmjs.com/package/tsynamo).
 
@@ -16,11 +50,11 @@ pnpm install tsynamo
 yarn add tsynamo
 ```
 
-# Usage
+## Usage
 
-## Creating a Tsynamo client
+### Creating a Tsynamo client
 
-1. Define the types for your DynamoDB tables:
+1. Define the types for your DynamoDB (DDB) tables:
 
 ```ts
 import { PartitionKey, SortKey } from "tsynamo";
@@ -73,9 +107,9 @@ await tsynamoClient
   .execute();
 ```
 
-## Query item
+### Query item
 
-### Partition key condition
+#### Partition key condition
 
 ```ts
 await tsynamoClient
@@ -84,7 +118,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Partition and sort key conditions
+#### Partition and sort key conditions
 
 ```ts
 await tsynamoClient
@@ -94,7 +128,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Simple filter expression
+#### Simple filter expression
 
 ```ts
 await tsynamoClient
@@ -104,7 +138,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Filter expression with a function
+#### Filter expression with a function
 
 ```ts
 await tsynamoClient
@@ -114,7 +148,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Multiple filter expressions
+#### Multiple filter expressions
 
 ```ts
 await tsynamoClient
@@ -125,7 +159,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Nested filter expressions
+#### Nested filter expressions
 
 ```ts
 await tsynamoClient
@@ -144,7 +178,7 @@ await tsynamoClient
 > This would compile as the following FilterExpression:
 > `eventType = "LOG_IN" OR (eventType = "UNAUTHORIZED_ACCESS" AND userAuthenticated = true`)
 
-### NOT filter expression
+#### NOT filter expression
 
 ```ts
 await tsynamoClient
@@ -159,9 +193,9 @@ await tsynamoClient
 > This would compile as the following FilterExpression:
 > `NOT eventType = "LOG_IN"`, i.e. return all events whose types is not "LOG_IN"
 
-## Put item
+### Put item
 
-### Simple put item
+#### Simple put item
 
 ```ts
 await tsynamoClient
@@ -173,7 +207,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Put item with ConditionExpression
+#### Put item with ConditionExpression
 
 ```ts
 await tsynamoClient
@@ -186,7 +220,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Put item with multiple ConditionExpressions
+#### Put item with multiple ConditionExpressions
 
 ```ts
 await tsynamoClient
@@ -200,9 +234,9 @@ await tsynamoClient
   .execute();
 ```
 
-## Delete item
+### Delete item
 
-### Simple delete item
+#### Simple delete item
 
 ```ts
 await tsynamoClient
@@ -214,7 +248,7 @@ await tsynamoClient
   .execute();
 ```
 
-### Simple delete item with ConditionExpression
+#### Simple delete item with ConditionExpression
 
 ```ts
 await tsynamoClient
@@ -227,15 +261,11 @@ await tsynamoClient
   .execute();
 ```
 
-## Update item
+### Update item
 
 WIP
 
-## Scan
-
-WIP
-
-# Contributors
+## Contributors
 
 <p>
     <a href="https://github.com/woltsu/tsynamo/graphs/contributors">
