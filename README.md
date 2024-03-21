@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" width="350px" align="center" alt="Tsynamo logo" />
+  <img src="assets/logo.png" width="400px" align="center" alt="Tsynamo logo" />
   <h1 align="center">Tsynamo</h1>
   <p align="center">
     ✨ Type-friendly DynamoDB query builder! ✨
