@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { GetNode } from "../nodes/getNode";
 import { QueryCompiler } from "../queryCompiler";
 import {
@@ -21,6 +21,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     attributes: A
   ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
+  compile(): GetCommand;
   execute(): Promise<ExecuteOutput<O> | undefined>;
 }
 
@@ -76,8 +77,11 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     }) as any;
   }
 
+  compile(): GetCommand {
+    return this.#props.queryCompiler.compile(this.#props.node);
+  }
   execute = async (): Promise<ExecuteOutput<O> | undefined> => {
-    const command = this.#props.queryCompiler.compile(this.#props.node);
+    const command = this.compile();
     const item = await this.#props.ddbClient.send(command);
     return (item.Item as ExecuteOutput<O>) ?? undefined;
   };

@@ -1,0 +1,311 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`QueryQueryBuilder > deleteItemQueryBuilder can be compiled 1`] = `
+DeleteCommand {
+  "clientCommand": DeleteItemCommand {
+    "deserialize": [Function],
+    "input": {
+      "ConditionExpression": undefined,
+      "ExpressionAttributeNames": undefined,
+      "ExpressionAttributeValues": undefined,
+      "Key": {
+        "dataTimestamp": 2,
+        "userId": "1",
+      },
+      "ReturnValues": "ALL_OLD",
+      "ReturnValuesOnConditionCheckFailure": undefined,
+      "TableName": "myTable",
+    },
+    "middlewareStack": {
+      "add": [Function],
+      "addRelativeTo": [Function],
+      "applyToStack": [Function],
+      "clone": [Function],
+      "concat": [Function],
+      "identify": [Function],
+      "identifyOnResolve": [Function],
+      "remove": [Function],
+      "removeByTag": [Function],
+      "resolve": [Function],
+      "use": [Function],
+    },
+    "serialize": [Function],
+  },
+  "input": {
+    "ConditionExpression": undefined,
+    "ExpressionAttributeNames": undefined,
+    "ExpressionAttributeValues": undefined,
+    "Key": {
+      "dataTimestamp": 2,
+      "userId": "1",
+    },
+    "ReturnValues": "ALL_OLD",
+    "ReturnValuesOnConditionCheckFailure": undefined,
+    "TableName": "myTable",
+  },
+  "inputKeyNodes": {
+    "Expected": {
+      "*": {
+        "AttributeValueList": [],
+        "Value": null,
+      },
+    },
+    "ExpressionAttributeValues": {},
+    "Key": {},
+  },
+  "middlewareStack": {
+    "add": [Function],
+    "addRelativeTo": [Function],
+    "applyToStack": [Function],
+    "clone": [Function],
+    "concat": [Function],
+    "identify": [Function],
+    "identifyOnResolve": [Function],
+    "remove": [Function],
+    "removeByTag": [Function],
+    "resolve": [Function],
+    "use": [Function],
+  },
+  "outputKeyNodes": {
+    "Attributes": {},
+    "ItemCollectionMetrics": {
+      "ItemCollectionKey": {},
+    },
+  },
+}
+`;
+
+exports[`QueryQueryBuilder > getItemQueryBuilder can be compiled 1`] = `
+GetCommand {
+  "clientCommand": GetItemCommand {
+    "deserialize": [Function],
+    "input": {
+      "ConsistentRead": undefined,
+      "ExpressionAttributeNames": undefined,
+      "Key": {
+        "dataTimestamp": 333,
+        "userId": "321",
+      },
+      "ProjectionExpression": undefined,
+      "TableName": "myTable",
+    },
+    "middlewareStack": {
+      "add": [Function],
+      "addRelativeTo": [Function],
+      "applyToStack": [Function],
+      "clone": [Function],
+      "concat": [Function],
+      "identify": [Function],
+      "identifyOnResolve": [Function],
+      "remove": [Function],
+      "removeByTag": [Function],
+      "resolve": [Function],
+      "use": [Function],
+    },
+    "serialize": [Function],
+  },
+  "input": {
+    "ConsistentRead": undefined,
+    "ExpressionAttributeNames": undefined,
+    "Key": {
+      "dataTimestamp": 333,
+      "userId": "321",
+    },
+    "ProjectionExpression": undefined,
+    "TableName": "myTable",
+  },
+  "inputKeyNodes": {
+    "Key": {},
+  },
+  "middlewareStack": {
+    "add": [Function],
+    "addRelativeTo": [Function],
+    "applyToStack": [Function],
+    "clone": [Function],
+    "concat": [Function],
+    "identify": [Function],
+    "identifyOnResolve": [Function],
+    "remove": [Function],
+    "removeByTag": [Function],
+    "resolve": [Function],
+    "use": [Function],
+  },
+  "outputKeyNodes": {
+    "Item": {},
+  },
+}
+`;
+
+exports[`QueryQueryBuilder > putItemQueryBuilder can be compiled 1`] = `
+PutCommand {
+  "clientCommand": PutItemCommand {
+    "deserialize": [Function],
+    "input": {
+      "ConditionExpression": undefined,
+      "ExpressionAttributeNames": undefined,
+      "ExpressionAttributeValues": undefined,
+      "Item": {
+        "dataTimestamp": 212,
+        "tags": [
+          "cats",
+        ],
+        "userId": "333",
+      },
+      "ReturnValues": undefined,
+      "TableName": "myTable",
+    },
+    "middlewareStack": {
+      "add": [Function],
+      "addRelativeTo": [Function],
+      "applyToStack": [Function],
+      "clone": [Function],
+      "concat": [Function],
+      "identify": [Function],
+      "identifyOnResolve": [Function],
+      "remove": [Function],
+      "removeByTag": [Function],
+      "resolve": [Function],
+      "use": [Function],
+    },
+    "serialize": [Function],
+  },
+  "input": {
+    "ConditionExpression": undefined,
+    "ExpressionAttributeNames": undefined,
+    "ExpressionAttributeValues": undefined,
+    "Item": {
+      "dataTimestamp": 212,
+      "tags": [
+        "cats",
+      ],
+      "userId": "333",
+    },
+    "ReturnValues": undefined,
+    "TableName": "myTable",
+  },
+  "inputKeyNodes": {
+    "Expected": {
+      "*": {
+        "AttributeValueList": [],
+        "Value": null,
+      },
+    },
+    "ExpressionAttributeValues": {},
+    "Item": {},
+  },
+  "middlewareStack": {
+    "add": [Function],
+    "addRelativeTo": [Function],
+    "applyToStack": [Function],
+    "clone": [Function],
+    "concat": [Function],
+    "identify": [Function],
+    "identifyOnResolve": [Function],
+    "remove": [Function],
+    "removeByTag": [Function],
+    "resolve": [Function],
+    "use": [Function],
+  },
+  "outputKeyNodes": {
+    "Attributes": {},
+    "ItemCollectionMetrics": {
+      "ItemCollectionKey": {},
+    },
+  },
+}
+`;
+
+exports[`QueryQueryBuilder > queryQueryBuilder can be compiled 1`] = `
+QueryCommand {
+  "clientCommand": QueryCommand {
+    "deserialize": [Function],
+    "input": {
+      "ConsistentRead": undefined,
+      "ExpressionAttributeNames": {
+        "#someBoolean": "someBoolean",
+        "#somethingElse": "somethingElse",
+        "#userId": "userId",
+      },
+      "ExpressionAttributeValues": {
+        ":filterExpressionValue0": true,
+        ":filterExpressionValue1left": 9,
+        ":filterExpressionValue1right": 10,
+        ":keyConditionValue0": "123",
+      },
+      "FilterExpression": "#someBoolean = :filterExpressionValue0 OR #somethingElse BETWEEN :filterExpressionValue1left AND :filterExpressionValue1right",
+      "KeyConditionExpression": "#userId = :keyConditionValue0",
+      "Limit": undefined,
+      "ProjectionExpression": "#userId",
+      "ScanIndexForward": undefined,
+      "TableName": "myTable",
+    },
+    "middlewareStack": {
+      "add": [Function],
+      "addRelativeTo": [Function],
+      "applyToStack": [Function],
+      "clone": [Function],
+      "concat": [Function],
+      "identify": [Function],
+      "identifyOnResolve": [Function],
+      "remove": [Function],
+      "removeByTag": [Function],
+      "resolve": [Function],
+      "use": [Function],
+    },
+    "serialize": [Function],
+  },
+  "input": {
+    "ConsistentRead": undefined,
+    "ExpressionAttributeNames": {
+      "#someBoolean": "someBoolean",
+      "#somethingElse": "somethingElse",
+      "#userId": "userId",
+    },
+    "ExpressionAttributeValues": {
+      ":filterExpressionValue0": true,
+      ":filterExpressionValue1left": 9,
+      ":filterExpressionValue1right": 10,
+      ":keyConditionValue0": "123",
+    },
+    "FilterExpression": "#someBoolean = :filterExpressionValue0 OR #somethingElse BETWEEN :filterExpressionValue1left AND :filterExpressionValue1right",
+    "KeyConditionExpression": "#userId = :keyConditionValue0",
+    "Limit": undefined,
+    "ProjectionExpression": "#userId",
+    "ScanIndexForward": undefined,
+    "TableName": "myTable",
+  },
+  "inputKeyNodes": {
+    "ExclusiveStartKey": {},
+    "ExpressionAttributeValues": {},
+    "KeyConditions": {
+      "*": {
+        "AttributeValueList": [],
+      },
+    },
+    "QueryFilter": {
+      "*": {
+        "AttributeValueList": [],
+      },
+    },
+  },
+  "middlewareStack": {
+    "add": [Function],
+    "addRelativeTo": [Function],
+    "applyToStack": [Function],
+    "clone": [Function],
+    "concat": [Function],
+    "identify": [Function],
+    "identifyOnResolve": [Function],
+    "remove": [Function],
+    "removeByTag": [Function],
+    "resolve": [Function],
+    "use": [Function],
+  },
+  "outputKeyNodes": {
+    "Items": {
+      "*": {},
+    },
+    "LastEvaluatedKey": {},
+  },
+}
+`;
