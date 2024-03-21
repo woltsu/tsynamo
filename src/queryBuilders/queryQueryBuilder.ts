@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
   BetweenExpression,
   FunctionExpression,
@@ -122,6 +122,7 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     attributes: A
   ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
+  compile(): QueryCommand;
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 
@@ -307,8 +308,12 @@ export class QueryQueryBuilder<
     }) as any;
   }
 
+  compile = (): QueryCommand => {
+    return this.#props.queryCompiler.compile(this.#props.node);
+  };
+
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
-    const command = this.#props.queryCompiler.compile(this.#props.node);
+    const command = this.compile();
     const result = await this.#props.ddbClient.send(command);
     return (result.Items as ExecuteOutput<O>[]) ?? undefined;
   };

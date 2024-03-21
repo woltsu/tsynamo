@@ -1,9 +1,9 @@
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { PutNode } from "../nodes/putNode";
-import { QueryCompiler } from "../queryCompiler";
-import { ExecuteOutput, ObjectKeyPaths, PickNonKeys } from "../typeHelpers";
-import { preventAwait } from "../util/preventAwait";
 import { ReturnValuesOptions } from "../nodes/returnValuesNode";
+import { QueryCompiler } from "../queryCompiler";
+import { ExecuteOutput, ObjectKeyPaths } from "../typeHelpers";
+import { preventAwait } from "../util/preventAwait";
 import {
   AttributeBeginsWithExprArg,
   AttributeBetweenExprArg,
@@ -83,6 +83,7 @@ export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     item: Item
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
+  compile(): PutCommand;
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 
@@ -164,8 +165,11 @@ export class PutItemQueryBuilder<
     });
   }
 
+  compile = (): PutCommand => {
+    return this.#props.queryCompiler.compile(this.#props.node);
+  };
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
-    const putCommand = this.#props.queryCompiler.compile(this.#props.node);
+    const putCommand = this.compile();
     const data = await this.#props.ddbClient.send(putCommand);
     return data.Attributes as any;
   };

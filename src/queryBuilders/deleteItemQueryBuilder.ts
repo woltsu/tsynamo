@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DeleteNode } from "../nodes/deleteNode";
 import { ReturnValuesOptions } from "../nodes/returnValuesNode";
 import { QueryCompiler } from "../queryCompiler";
@@ -96,6 +96,7 @@ export interface DeleteItemQueryBuilderInterface<
     pk: Keys
   ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
 
+  compile(): DeleteCommand;
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 
@@ -195,8 +196,11 @@ export class DeleteItemQueryBuilder<
     });
   }
 
+  compile = (): DeleteCommand => {
+    return this.#props.queryCompiler.compile(this.#props.node);
+  };
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
-    const deleteCommand = this.#props.queryCompiler.compile(this.#props.node);
+    const deleteCommand = this.compile();
     const data = await this.#props.ddbClient.send(deleteCommand);
     return data.Attributes as any;
   };
