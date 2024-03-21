@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" width="200px" align="center" alt="Zod logo" />
+  <img src="assets/logo.png" width="200px" align="center" alt="Tsynamo logo" />
   <h1 align="center">Tsynamo</h1>
   <p align="center">
     ✨ Type-friendly DynamoDB query builder! ✨
@@ -9,7 +9,7 @@
 </p>
 <br/>
 <p align="center">
-<a href="https://github.com/woltsu/tsynamo/actions?query=branch%main"><img src="https://github.com/colinhacks/zod/actions/workflows/test.yml/badge.svg?event=push&branch=master" alt="Tsynamo CI status" /></a>
+<a href="https://github.com/woltsu/tsynamo/actions?query=branch%main"><img src="https://github.com/woltsu/tsynamo/actions/workflows/deploy.yml/badge.svg?event=push&branch=main" alt="Tsynamo CI status" /></a>
 <a href="https://www.npmjs.com/package/tsynamo"><img src="https://img.shields.io/npm/v/tsynamo.svg?style=flat&color=brightgreen" target="_blank" /></a>
 <a href="https://opensource.org/licenses/MIT" rel="nofollow"><img src="https://img.shields.io/github/license/woltsu/tsynamo" alt="License"></a>
 </p>
