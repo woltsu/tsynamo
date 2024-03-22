@@ -3,6 +3,7 @@ import {
   GetCommand,
   PutCommand,
   QueryCommand,
+  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { ExpressionJoinTypeNode } from "../nodes/expressionJoinTypeNode";
 import { ExpressionNode } from "../nodes/expressionNode";
@@ -17,13 +18,15 @@ import {
 import { AttributesNode } from "../nodes/attributesNode";
 import { PutNode } from "../nodes/putNode";
 import { DeleteNode } from "../nodes/deleteNode";
+import { UpdateNode } from "../nodes/updateNode";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
   compile(rootNode: GetNode): GetCommand;
   compile(rootNode: PutNode): PutCommand;
   compile(rootNode: DeleteNode): DeleteCommand;
-  compile(rootNode: QueryNode | GetNode | PutNode | DeleteNode) {
+  compile(rootNode: UpdateNode): UpdateCommand;
+  compile(rootNode: QueryNode | GetNode | PutNode | DeleteNode | UpdateNode) {
     switch (rootNode.kind) {
       case "GetNode":
         return this.compileGetNode(rootNode);
@@ -33,6 +36,8 @@ export class QueryCompiler {
         return this.compilePutNode(rootNode);
       case "DeleteNode":
         return this.compileDeleteNode(rootNode);
+      case "UpdateNode":
+        return this.compileUpdateNode(rootNode);
     }
   }
 
@@ -189,6 +194,13 @@ export class QueryCompiler {
               ...Object.fromEntries(attributeNames),
             }
           : undefined,
+    });
+  }
+
+  compileUpdateNode(updateNode: UpdateNode) {
+    return new UpdateCommand({
+      TableName: "TODO",
+      Key: {},
     });
   }
 

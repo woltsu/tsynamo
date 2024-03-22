@@ -37,6 +37,7 @@ describe("QueryQueryBuilder", () => {
 
     expect(data).toMatchSnapshot();
   });
+
   it("getItemQueryBuilder can be compiled", async () => {
     const data = await tsynamoClient
       .getItem("myTable")
@@ -48,6 +49,7 @@ describe("QueryQueryBuilder", () => {
 
     expect(data).toMatchSnapshot();
   });
+
   it("deleteItemQueryBuilder can be compiled", async () => {
     const data = await tsynamoClient
       .deleteItem("myTable")
@@ -60,4 +62,6 @@ describe("QueryQueryBuilder", () => {
 
     expect(data).toMatchSnapshot();
   });
+
+  it.todo("updateItemQueryBuilder can be compiled");
 });
