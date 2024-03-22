@@ -18,6 +18,7 @@
 
 Tsynamo simplifies the DynamoDB API so that you don't have to write commands with raw expressions and hassle with the attribute names and values. Moreover, Tsynamo makes sure you use correct types in your DynamoDB expressions, and the queries are nicer to write with autocompletion!
 
+> [!WARNING]  
 > Tsynamo is still an early stage project, please post issues if you notice something missing from the API! Currently the `update-item` command is still a work in progress, and support for batch commands is missing.
 
 ## Table of contents
@@ -68,7 +69,7 @@ export interface DDB {
   };
 }
 ```
-
+> [!TIP]
 > Notice that you can have multiple tables in the DDB schema. Nested attributes are supported too.
 
 2. Create a DynamoDB document client:
@@ -84,6 +85,7 @@ const ddbClient = DynamoDBDocumentClient.from(
 );
 ```
 
+> [!IMPORTANT]
 > The document client must come from @aws-sdk/lib-dynamodb!
 
 3. Create a Tsynamo client with the defined DynamoDB types and client:
@@ -175,6 +177,7 @@ await tsynamoClient
   .execute();
 ```
 
+> [!NOTE]
 > This would compile as the following FilterExpression:
 > `eventType = "LOG_IN" OR (eventType = "UNAUTHORIZED_ACCESS" AND userAuthenticated = true`)
 
