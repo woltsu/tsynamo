@@ -13,5 +13,13 @@ describe("UpdateItemQueryBuilder", () => {
     });
   });
 
-  it.todo("handles a simple update item query");
+  it("handles update item query with SET statements", async () => {
+    await tsynamoClient
+      .updateItem("myTable")
+      .set("someBoolean", "=", (qb) => {
+        return qb.ifNotExists("someBoolean", true);
+      })
+      .set("dataTimestamp", "+=", 1)
+      .execute();
+  });
 });

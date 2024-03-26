@@ -16,7 +16,7 @@ export interface DDB {
     somethingElse: number;
     someBoolean: boolean;
     nested: {
-      nestedString: number;
+      nestedString: string;
       nestedBoolean: boolean;
       nestedNested: {
         nestedNestedBoolean: boolean;

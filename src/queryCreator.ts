@@ -121,31 +121,35 @@ export class QueryCreator<DDB> {
     });
   }
 
-    /**
+  /**
    *
    * @param table Table to perform the update item command to
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/UpdateItemCommand/
    */
-    updateItem<Table extends keyof DDB & string>(
-      table: Table
-    ): UpdateItemQueryBuilder<DDB, Table, DDB[Table]> {
-      return new UpdateItemQueryBuilder<DDB, Table, DDB[Table]>({
-        node: {
-          kind: "UpdateNode",
-          table: {
-            kind: "TableNode",
-            table,
-          },
-          conditionExpression: {
-            kind: "ExpressionNode",
-            expressions: [],
-          },
+  updateItem<Table extends keyof DDB & string>(
+    table: Table
+  ): UpdateItemQueryBuilder<DDB, Table, DDB[Table]> {
+    return new UpdateItemQueryBuilder<DDB, Table, DDB[Table]>({
+      node: {
+        kind: "UpdateNode",
+        table: {
+          kind: "TableNode",
+          table,
         },
-        ddbClient: this.#props.ddbClient,
-        queryCompiler: this.#props.queryCompiler,
-      });
-    }
+        conditionExpression: {
+          kind: "ExpressionNode",
+          expressions: [],
+        },
+        updateExpression: {
+          kind: "UpdateExpression",
+          setUpdateExpressions: [],
+        },
+      },
+      ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
+    });
+  }
 }
 
 export interface QueryCreatorProps {

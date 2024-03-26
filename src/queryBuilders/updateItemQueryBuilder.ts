@@ -1,8 +1,15 @@
 import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { UpdateExpressionOperands } from "../nodes/operands";
 import { ReturnValuesOptions } from "../nodes/returnValuesNode";
+import { SetUpdateExpressionFunction } from "../nodes/setUpdateExpressionFunction";
 import { UpdateNode } from "../nodes/updateNode";
 import { QueryCompiler } from "../queryCompiler";
-import { ExecuteOutput, ObjectKeyPaths } from "../typeHelpers";
+import {
+  ExecuteOutput,
+  GetFromPath,
+  ObjectKeyPaths,
+  StripKeys,
+} from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
 import {
   AttributeBeginsWithExprArg,
@@ -15,6 +22,7 @@ import {
   ExpressionBuilder,
   NotExprArg,
 } from "./expressionBuilder";
+import { SetUpdateExpressionFunctionQueryBuilder } from "./setUpdateExpressionFunctionQueryBuilder";
 
 export interface UpdateItemQueryBuilderInterface<
   DDB,
@@ -79,6 +87,32 @@ export interface UpdateItemQueryBuilderInterface<
     ...args: BuilderExprArg<DDB, Table, Key>
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
+  set<Key extends ObjectKeyPaths<DDB[Table]>>(
+    key: Key,
+    operand: UpdateExpressionOperands,
+    value: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+
+  set<Key extends ObjectKeyPaths<DDB[Table]>>(
+    key: Key,
+    operand: UpdateExpressionOperands,
+    value: (
+      builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
+    ) => SetUpdateExpressionFunction
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+
+  /* set("key1", "=", ({ ifNotExists }) => {
+    return ifNotExists("key2", ({ ifNotExists }) => {
+      return ifNotExists("key3", ({ listAppend }) => {
+        return listAppend("key3", "dada")
+      })
+    })
+  }) */
+
+  // TODO: remove
+  // TODO: add
+  // TODO: delete?
+
   returnValues(
     option: ReturnValuesOptions
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
@@ -133,6 +167,77 @@ export class UpdateItemQueryBuilder<
         conditionExpression: expressionNode,
       },
     });
+  }
+
+  set<Key extends ObjectKeyPaths<DDB[Table]>, XD extends DDB>(
+    ...args:
+      | [
+          key: Key,
+          operand: UpdateExpressionOperands,
+          value: StripKeys<GetFromPath<DDB[Table], Key>>
+        ]
+      | [
+          key: Key,
+          operand: UpdateExpressionOperands,
+          value: (
+            builder: SetUpdateExpressionFunctionQueryBuilder<
+              DDB,
+              Table,
+              DDB[Table]
+            >
+          ) => SetUpdateExpressionFunction
+        ]
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+    const [key, operand, right] = args;
+
+    if (typeof right === "function") {
+      const setUpdateExpressionBuilder =
+        new SetUpdateExpressionFunctionQueryBuilder<DDB, Table, O>();
+
+      // TODO: Get rid of casting?
+      const builder = right as (
+        builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
+      ) => SetUpdateExpressionFunction;
+
+      const expression = builder(setUpdateExpressionBuilder);
+
+      return new UpdateItemQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          updateExpression: {
+            ...this.#props.node.updateExpression,
+            setUpdateExpressions:
+              this.#props.node.updateExpression.setUpdateExpressions.concat({
+                kind: "SetUpdateExpression",
+                operation: operand,
+                key,
+                right: expression,
+              }),
+          },
+        },
+      });
+    } else {
+      return new UpdateItemQueryBuilder<DDB, Table, O>({
+        ...this.#props,
+        node: {
+          ...this.#props.node,
+          updateExpression: {
+            ...this.#props.node.updateExpression,
+            setUpdateExpressions:
+              this.#props.node.updateExpression.setUpdateExpressions.concat({
+                kind: "SetUpdateExpression",
+                operation: operand,
+                key,
+                right: {
+                  kind: "SetUpdateExpressionValue",
+                  value: right,
+                },
+              }),
+          },
+        },
+      });
+    }
   }
 
   returnValues(
