@@ -5,20 +5,23 @@ import {
   QueryCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { AttributesNode } from "../nodes/attributesNode";
+import { DeleteNode } from "../nodes/deleteNode";
 import { ExpressionJoinTypeNode } from "../nodes/expressionJoinTypeNode";
 import { ExpressionNode } from "../nodes/expressionNode";
 import { GetNode } from "../nodes/getNode";
 import { KeyConditionNode } from "../nodes/keyConditionNode";
+import { PutNode } from "../nodes/putNode";
 import { QueryNode } from "../nodes/queryNode";
+import { SetUpdateExpression } from "../nodes/setUpdateExpression";
+import { SetUpdateExpressionFunction } from "../nodes/setUpdateExpressionFunction";
+import { UpdateExpression } from "../nodes/updateExpression";
+import { UpdateNode } from "../nodes/updateNode";
 import {
   getAttributeNameFrom,
   getExpressionAttributeNameFrom,
   mergeObjectIntoMap,
 } from "./compilerUtil";
-import { AttributesNode } from "../nodes/attributesNode";
-import { PutNode } from "../nodes/putNode";
-import { DeleteNode } from "../nodes/deleteNode";
-import { UpdateNode } from "../nodes/updateNode";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
@@ -198,9 +201,51 @@ export class QueryCompiler {
   }
 
   compileUpdateNode(updateNode: UpdateNode) {
+    const {
+      table: tableNode,
+      conditionExpression: conditionExpressionNode,
+      updateExpression: updateExpressionNode,
+      keys: keysNode,
+      returnValues: returnValuesNode,
+    } = updateNode;
+
+    const attributeNames = new Map();
+    const filterExpressionAttributeValues = new Map();
+
+    const compiledConditionExpression = this.compileExpression(
+      conditionExpressionNode,
+      filterExpressionAttributeValues,
+      attributeNames
+    );
+
+    const compiledUpdateExpression = this.compileUpdateExpression(
+      updateExpressionNode,
+      filterExpressionAttributeValues,
+      attributeNames
+    );
+
     return new UpdateCommand({
-      TableName: "TODO",
-      Key: {},
+      TableName: tableNode.table,
+      Key: keysNode?.keys,
+      ReturnValues: returnValuesNode?.option,
+      ConditionExpression: compiledConditionExpression
+        ? compiledConditionExpression
+        : undefined,
+      UpdateExpression: compiledUpdateExpression
+        ? compiledUpdateExpression
+        : undefined,
+      ExpressionAttributeValues:
+        filterExpressionAttributeValues.size > 0
+          ? {
+              ...Object.fromEntries(filterExpressionAttributeValues),
+            }
+          : undefined,
+      ExpressionAttributeNames:
+        attributeNames.size > 0
+          ? {
+              ...Object.fromEntries(attributeNames),
+            }
+          : undefined,
     });
   }
 
@@ -392,4 +437,159 @@ export class QueryCompiler {
 
     return res;
   };
+
+  compileUpdateExpression(
+    node: UpdateExpression,
+    updateExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
+  ) {
+    let res = "SET ";
+
+    res += node.setUpdateExpressions
+      .map((setUpdateExpression) => {
+        return this.compileSetUpdateExpression(
+          setUpdateExpression,
+          updateExpressionAttributeValues,
+          attributeNames
+        );
+      })
+      .join(", ");
+
+    return res;
+  }
+
+  compileSetUpdateExpression(
+    expression: SetUpdateExpression,
+    updateExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
+  ) {
+    let res = "";
+    const offset = updateExpressionAttributeValues.size;
+    const attributeValue = `:setUpdateExpressionValue${offset}`;
+
+    const { expressionAttributeName, attributeNameMap } =
+      this.compileAttributeName(expression.key);
+    const attributeName = expressionAttributeName;
+    mergeObjectIntoMap(attributeNames, attributeNameMap);
+
+    res += `${attributeName} `;
+
+    switch (expression.operation) {
+      case "+=": {
+        res += `= ${attributeName} + `;
+        break;
+      }
+
+      case "-=": {
+        res += `= ${attributeName} - `;
+        break;
+      }
+
+      case "=": {
+        res += "= ";
+        break;
+      }
+    }
+
+    switch (expression.right.kind) {
+      case "SetUpdateExpressionValue": {
+        res += attributeValue;
+        updateExpressionAttributeValues.set(
+          attributeValue,
+          expression.right.value
+        );
+        return res;
+      }
+
+      case "SetUpdateExpressionFunction": {
+        res += this.compileSetUpdateExpressionFunction(
+          expression.right,
+          updateExpressionAttributeValues,
+          attributeNames
+        );
+        return res;
+      }
+    }
+  }
+
+  compileSetUpdateExpressionFunction(
+    functionExpression: SetUpdateExpressionFunction,
+    filterExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
+  ) {
+    const { function: functionNode } = functionExpression;
+    let res = "";
+
+    switch (functionNode.kind) {
+      case "SetUpdateExpressionIfNotExistsFunction": {
+        let rightValue = "";
+        const offset = filterExpressionAttributeValues.size;
+        const attributeValue = `:setUpdateExpressionValue${offset}`;
+
+        if (functionNode.right.kind === "SetUpdateExpressionValue") {
+          rightValue = attributeValue;
+
+          filterExpressionAttributeValues.set(
+            attributeValue,
+            functionNode.right.value
+          );
+        } else {
+          rightValue = this.compileSetUpdateExpressionFunction(
+            functionNode.right,
+            filterExpressionAttributeValues,
+            attributeNames
+          );
+        }
+
+        const { expressionAttributeName, attributeNameMap } =
+          this.compileAttributeName(functionNode.path);
+        const attributeName = expressionAttributeName;
+        mergeObjectIntoMap(attributeNames, attributeNameMap);
+
+        res += `if_not_exists(${attributeName}, ${rightValue})`;
+        return res;
+      }
+
+      case "SetUpdateExpressionListAppendFunction": {
+        let leftValue = "";
+        let rightValue = "";
+
+        if (typeof functionNode.left === "string") {
+          const { expressionAttributeName, attributeNameMap } =
+            this.compileAttributeName(functionNode.left);
+
+          const attributeName = expressionAttributeName;
+          mergeObjectIntoMap(attributeNames, attributeNameMap);
+          leftValue = attributeName;
+        } else {
+          leftValue = this.compileSetUpdateExpressionFunction(
+            functionNode.left,
+            filterExpressionAttributeValues,
+            attributeNames
+          );
+        }
+
+        const offset = filterExpressionAttributeValues.size;
+        const attributeValue = `:setUpdateExpressionValue${offset}`;
+
+        if (functionNode.right.kind === "SetUpdateExpressionValue") {
+          rightValue = attributeValue;
+
+          filterExpressionAttributeValues.set(
+            attributeValue,
+            functionNode.right.value
+          );
+        } else {
+          rightValue = this.compileSetUpdateExpressionFunction(
+            functionNode.right,
+            filterExpressionAttributeValues,
+            attributeNames
+          );
+        }
+
+        res += `list_append(${leftValue}, ${rightValue})`;
+        return res;
+      }
+    }
+  }
 }

@@ -8,7 +8,10 @@ import {
   ExecuteOutput,
   GetFromPath,
   ObjectKeyPaths,
+  PickPk,
+  PickSkRequired,
   StripKeys,
+  PickNonKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
 import {
@@ -87,13 +90,13 @@ export interface UpdateItemQueryBuilderInterface<
     ...args: BuilderExprArg<DDB, Table, Key>
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  set<Key extends ObjectKeyPaths<DDB[Table]>>(
+  set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operand: UpdateExpressionOperands,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  set<Key extends ObjectKeyPaths<DDB[Table]>>(
+  set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operand: UpdateExpressionOperands,
     value: (
@@ -101,13 +104,9 @@ export interface UpdateItemQueryBuilderInterface<
     ) => SetUpdateExpressionFunction
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  /* set("key1", "=", ({ ifNotExists }) => {
-    return ifNotExists("key2", ({ ifNotExists }) => {
-      return ifNotExists("key3", ({ listAppend }) => {
-        return listAppend("key3", "dada")
-      })
-    })
-  }) */
+  keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
+    pk: Keys
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
   // TODO: remove
   // TODO: add
@@ -169,7 +168,7 @@ export class UpdateItemQueryBuilder<
     });
   }
 
-  set<Key extends ObjectKeyPaths<DDB[Table]>, XD extends DDB>(
+  set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args:
       | [
           key: Key,
@@ -250,6 +249,21 @@ export class UpdateItemQueryBuilder<
         returnValues: {
           kind: "ReturnValuesNode",
           option,
+        },
+      },
+    });
+  }
+
+  keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
+    keys: Keys
+  ) {
+    return new UpdateItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        keys: {
+          kind: "KeysNode",
+          keys,
         },
       },
     });

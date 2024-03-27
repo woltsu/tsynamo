@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`UpdateItemQueryBuilder > handles update item query with SET statements 1`] = `
+{
+  "dataTimestamp": 2,
+  "someBoolean": true,
+  "tags": [
+    "test_tag",
+  ],
+  "userId": "1",
+}
+`;

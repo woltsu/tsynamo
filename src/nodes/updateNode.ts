@@ -1,5 +1,6 @@
 import { ExpressionNode } from "./expressionNode";
 import { ItemNode } from "./itemNode";
+import { KeysNode } from "./keysNode";
 import { ReturnValuesNode } from "./returnValuesNode";
 import { TableNode } from "./tableNode";
 import { UpdateExpression } from "./updateExpression";
@@ -9,6 +10,6 @@ export type UpdateNode = {
   readonly table: TableNode;
   readonly conditionExpression: ExpressionNode;
   readonly updateExpression: UpdateExpression;
-  readonly item?: ItemNode;
+  readonly keys?: KeysNode;
   readonly returnValues?: ReturnValuesNode;
 };

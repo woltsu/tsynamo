@@ -15,6 +15,6 @@ export type SetUpdateExpressionIfNotExistsFunction = {
 
 export type SetUpdateExpressionListAppendFunction = {
   readonly kind: "SetUpdateExpressionListAppendFunction";
-  readonly left: SetUpdateExpressionFunction;
+  readonly left: SetUpdateExpressionFunction | string;
   readonly right: SetUpdateExpressionFunction | SetUpdateExpressionValue;
 };

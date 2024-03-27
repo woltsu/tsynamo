@@ -14,12 +14,21 @@ describe("UpdateItemQueryBuilder", () => {
   });
 
   it("handles update item query with SET statements", async () => {
-    await tsynamoClient
+    const res = await tsynamoClient
       .updateItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
       .set("someBoolean", "=", (qb) => {
         return qb.ifNotExists("someBoolean", true);
       })
-      .set("dataTimestamp", "+=", 1)
+      .set("tags", "=", (qb) => {
+        return qb.listAppend(
+          (qbb) => qbb.ifNotExists("tags", []),
+          ["test_tag"]
+        );
+      })
+      .returnValues("ALL_NEW")
       .execute();
+
+    expect(res).toMatchSnapshot();
   });
 });
