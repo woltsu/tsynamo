@@ -472,27 +472,18 @@ export class QueryCompiler {
     const attributeName = expressionAttributeName;
     mergeObjectIntoMap(attributeNames, attributeNameMap);
 
-    res += `${attributeName} `;
-
-    switch (expression.operation) {
-      case "+=": {
-        res += `= ${attributeName} + `;
-        break;
-      }
-
-      case "-=": {
-        res += `= ${attributeName} - `;
-        break;
-      }
-
-      case "=": {
-        res += "= ";
-        break;
-      }
-    }
+    res += `${attributeName} = `;
 
     switch (expression.right.kind) {
       case "SetUpdateExpressionValue": {
+        if (expression.operation !== "=") {
+          if (expression.operation === "-=") {
+            res += `${attributeName} - `;
+          } else {
+            res += `${attributeName} + `;
+          }
+        }
+
         res += attributeValue;
         updateExpressionAttributeValues.set(
           attributeValue,
@@ -502,11 +493,28 @@ export class QueryCompiler {
       }
 
       case "SetUpdateExpressionFunction": {
-        res += this.compileSetUpdateExpressionFunction(
+        const compiledFunc = this.compileSetUpdateExpressionFunction(
           expression.right,
           updateExpressionAttributeValues,
           attributeNames
         );
+
+        if (expression.value !== undefined) {
+          const offset = updateExpressionAttributeValues.size;
+          const attributeValue = `:setUpdateExpressionValue${offset}Value`;
+
+          if (expression.operation === "+=") {
+            // TODO: Put to value map
+            res += `${compiledFunc} + ${attributeValue}`;
+          } else if (expression.operation === "-=") {
+            res += `${compiledFunc} - ${attributeValue}`;
+          }
+
+          updateExpressionAttributeValues.set(attributeValue, expression.value);
+        } else {
+          res += compiledFunc;
+        }
+
         return res;
       }
     }

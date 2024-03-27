@@ -26,6 +26,9 @@ describe("UpdateItemQueryBuilder", () => {
           ["test_tag"]
         );
       })
+      .set("somethingElse", "+=", (qb) => {
+        return [qb.ifNotExists("somethingElse", 1), 2]
+      })
       .returnValues("ALL_NEW")
       .execute();
 

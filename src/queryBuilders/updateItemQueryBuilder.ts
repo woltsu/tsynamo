@@ -98,10 +98,18 @@ export interface UpdateItemQueryBuilderInterface<
 
   set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
-    operand: UpdateExpressionOperands,
+    operand: Extract<UpdateExpressionOperands, "=">,
     value: (
       builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
     ) => SetUpdateExpressionFunction
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+
+  set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    key: Key,
+    operand: Exclude<UpdateExpressionOperands, "=">,
+    value: (
+      builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
+    ) => [SetUpdateExpressionFunction, number]
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
@@ -177,7 +185,7 @@ export class UpdateItemQueryBuilder<
         ]
       | [
           key: Key,
-          operand: UpdateExpressionOperands,
+          operand: Extract<UpdateExpressionOperands, "=">,
           value: (
             builder: SetUpdateExpressionFunctionQueryBuilder<
               DDB,
@@ -186,6 +194,17 @@ export class UpdateItemQueryBuilder<
             >
           ) => SetUpdateExpressionFunction
         ]
+      | [
+          key: Key,
+          operand: Exclude<UpdateExpressionOperands, "=">,
+          value: (
+            builder: SetUpdateExpressionFunctionQueryBuilder<
+              DDB,
+              Table,
+              DDB[Table]
+            >
+          ) => [SetUpdateExpressionFunction, number]
+        ]
   ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
     const [key, operand, right] = args;
 
@@ -193,29 +212,61 @@ export class UpdateItemQueryBuilder<
       const setUpdateExpressionBuilder =
         new SetUpdateExpressionFunctionQueryBuilder<DDB, Table, O>();
 
-      // TODO: Get rid of casting?
-      const builder = right as (
-        builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
-      ) => SetUpdateExpressionFunction;
+      if (operand === "=") {
+        // TODO: Get rid of casting?
+        const builder = right as (
+          builder: SetUpdateExpressionFunctionQueryBuilder<
+            DDB,
+            Table,
+            DDB[Table]
+          >
+        ) => SetUpdateExpressionFunction;
 
-      const expression = builder(setUpdateExpressionBuilder);
-
-      return new UpdateItemQueryBuilder<DDB, Table, O>({
-        ...this.#props,
-        node: {
-          ...this.#props.node,
-          updateExpression: {
-            ...this.#props.node.updateExpression,
-            setUpdateExpressions:
-              this.#props.node.updateExpression.setUpdateExpressions.concat({
-                kind: "SetUpdateExpression",
-                operation: operand,
-                key,
-                right: expression,
-              }),
+        const expression = builder(setUpdateExpressionBuilder);
+        return new UpdateItemQueryBuilder<DDB, Table, O>({
+          ...this.#props,
+          node: {
+            ...this.#props.node,
+            updateExpression: {
+              ...this.#props.node.updateExpression,
+              setUpdateExpressions:
+                this.#props.node.updateExpression.setUpdateExpressions.concat({
+                  kind: "SetUpdateExpression",
+                  operation: operand,
+                  key,
+                  right: expression,
+                }),
+            },
           },
-        },
-      });
+        });
+      } else {
+        const builder = right as (
+          builder: SetUpdateExpressionFunctionQueryBuilder<
+            DDB,
+            Table,
+            DDB[Table]
+          >
+        ) => [SetUpdateExpressionFunction, number];
+
+        const [expression, number] = builder(setUpdateExpressionBuilder);
+        return new UpdateItemQueryBuilder<DDB, Table, O>({
+          ...this.#props,
+          node: {
+            ...this.#props.node,
+            updateExpression: {
+              ...this.#props.node.updateExpression,
+              setUpdateExpressions:
+                this.#props.node.updateExpression.setUpdateExpressions.concat({
+                  kind: "SetUpdateExpression",
+                  operation: operand,
+                  key,
+                  right: expression,
+                  value: number,
+                }),
+            },
+          },
+        });
+      }
     } else {
       return new UpdateItemQueryBuilder<DDB, Table, O>({
         ...this.#props,

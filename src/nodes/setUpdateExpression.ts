@@ -7,4 +7,5 @@ export type SetUpdateExpression = {
   readonly key: string;
   readonly operation: UpdateExpressionOperands;
   readonly right: SetUpdateExpressionFunction | SetUpdateExpressionValue;
+  readonly value?: number;
 };
