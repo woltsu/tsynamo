@@ -22,6 +22,8 @@ import {
   getExpressionAttributeNameFrom,
   mergeObjectIntoMap,
 } from "./compilerUtil";
+import { RemoveUpdateExpression } from "../nodes/removeUpdateExpression";
+import { AddUpdateExpression } from "../nodes/addUpdateExpression";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
@@ -462,10 +464,28 @@ export class QueryCompiler {
       res += " REMOVE ";
       res += node.removeUpdateExpressions
         .map((removeUpdateExpression) => {
-          return removeUpdateExpression.attribute;
+          return this.compileRemoveUpdateExpression(
+            removeUpdateExpression,
+            attributeNames
+          );
         })
         .join(", ");
     }
+
+    if (node.addUpdateExpressions.length > 0) {
+      res += " ADD ";
+      res += node.addUpdateExpressions
+        .map((addUpdateExpression) => {
+          return this.compileAddUpdateExpression(
+            addUpdateExpression,
+            updateExpressionAttributeValues,
+            attributeNames
+          );
+        })
+        .join(", ");
+    }
+
+    // TODO: Compile ADD actions
 
     return res;
   }
@@ -534,7 +554,7 @@ export class QueryCompiler {
 
   compileSetUpdateExpressionFunction(
     functionExpression: SetUpdateExpressionFunction,
-    filterExpressionAttributeValues: Map<string, unknown>,
+    updateExpressionAttributeValues: Map<string, unknown>,
     attributeNames: Map<string, string>
   ) {
     const { function: functionNode } = functionExpression;
@@ -543,20 +563,20 @@ export class QueryCompiler {
     switch (functionNode.kind) {
       case "SetUpdateExpressionIfNotExistsFunction": {
         let rightValue = "";
-        const offset = filterExpressionAttributeValues.size;
+        const offset = updateExpressionAttributeValues.size;
         const attributeValue = `:setUpdateExpressionValue${offset}`;
 
         if (functionNode.right.kind === "SetUpdateExpressionValue") {
           rightValue = attributeValue;
 
-          filterExpressionAttributeValues.set(
+          updateExpressionAttributeValues.set(
             attributeValue,
             functionNode.right.value
           );
         } else {
           rightValue = this.compileSetUpdateExpressionFunction(
             functionNode.right,
-            filterExpressionAttributeValues,
+            updateExpressionAttributeValues,
             attributeNames
           );
         }
@@ -584,25 +604,25 @@ export class QueryCompiler {
         } else {
           leftValue = this.compileSetUpdateExpressionFunction(
             functionNode.left,
-            filterExpressionAttributeValues,
+            updateExpressionAttributeValues,
             attributeNames
           );
         }
 
-        const offset = filterExpressionAttributeValues.size;
+        const offset = updateExpressionAttributeValues.size;
         const attributeValue = `:setUpdateExpressionValue${offset}`;
 
         if (functionNode.right.kind === "SetUpdateExpressionValue") {
           rightValue = attributeValue;
 
-          filterExpressionAttributeValues.set(
+          updateExpressionAttributeValues.set(
             attributeValue,
             functionNode.right.value
           );
         } else {
           rightValue = this.compileSetUpdateExpressionFunction(
             functionNode.right,
-            filterExpressionAttributeValues,
+            updateExpressionAttributeValues,
             attributeNames
           );
         }
@@ -611,5 +631,33 @@ export class QueryCompiler {
         return res;
       }
     }
+  }
+
+  compileRemoveUpdateExpression(
+    node: RemoveUpdateExpression,
+    attributeNames: Map<string, string>
+  ) {
+    const { expressionAttributeName, attributeNameMap } =
+      this.compileAttributeName(node.attribute);
+    const attributeName = expressionAttributeName;
+    mergeObjectIntoMap(attributeNames, attributeNameMap);
+    return attributeName;
+  }
+
+  compileAddUpdateExpression(
+    node: AddUpdateExpression,
+    updateExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
+  ) {
+    const { expressionAttributeName, attributeNameMap } =
+      this.compileAttributeName(node.key);
+    const attributeName = expressionAttributeName;
+    mergeObjectIntoMap(attributeNames, attributeNameMap);
+
+    const offset = updateExpressionAttributeValues.size;
+    const attributeValue = `:addUpdateExpressionValue${offset}`;
+    updateExpressionAttributeValues.set(attributeValue, node.value);
+
+    return `${attributeName} ${attributeValue}`;
   }
 }

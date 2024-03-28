@@ -1,15 +1,18 @@
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DDB } from "../../test/testFixture";
 import { getDDBClientFor, startDDBTestContainer } from "../../test/testUtil";
 import { Tsynamo } from "./../index";
 
 describe("UpdateItemQueryBuilder", () => {
   let tsynamoClient: Tsynamo<DDB>;
+  let ddbClient: DynamoDBDocumentClient;
 
   beforeAll(async () => {
     const testContainer = await startDDBTestContainer();
+    ddbClient = await getDDBClientFor(testContainer);
 
     tsynamoClient = new Tsynamo<DDB>({
-      ddbClient: await getDDBClientFor(testContainer),
+      ddbClient,
     });
   });
 
@@ -50,6 +53,34 @@ describe("UpdateItemQueryBuilder", () => {
       .updateItem("myTable")
       .keys({ userId: "1010", dataTimestamp: 200 })
       .remove("somethingElse")
+      .execute();
+
+    const foundItem = await tsynamoClient
+      .getItem("myTable")
+      .keys({
+        userId: "1010",
+        dataTimestamp: 200,
+      })
+      .execute();
+
+    expect(foundItem).toMatchSnapshot();
+  });
+
+  it("handles update item query with ADD statements", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1010",
+        dataTimestamp: 200,
+        someBoolean: true,
+      })
+      .execute();
+
+    await tsynamoClient
+      .updateItem("myTable")
+      .keys({ userId: "1010", dataTimestamp: 200 })
+      .add("somethingElse", 7)
+      .add("someSet", new Set(["item1", "item2"]))
       .execute();
 
     const foundItem = await tsynamoClient

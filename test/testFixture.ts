@@ -23,6 +23,7 @@ export interface DDB {
       };
     };
     tags: string[];
+    someSet: Set<string>;
   };
   myOtherTable: {
     userId: PartitionKey<string>;

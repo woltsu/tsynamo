@@ -120,8 +120,13 @@ export interface UpdateItemQueryBuilderInterface<
     attribute: Key
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  // TODO: add
-  // TODO: delete?
+  // TODO: This should only be supported for keys that are of type NUMBER or ARRAY
+  add<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    attribute: Key,
+    value: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+
+  // TODO: Add support for DELETE action
 
   returnValues(
     option: ReturnValuesOptions
@@ -306,6 +311,27 @@ export class UpdateItemQueryBuilder<
             this.#props.node.updateExpression.removeUpdateExpressions.concat({
               kind: "RemoveUpdateExpression",
               attribute,
+            }),
+        },
+      },
+    });
+  }
+
+  add<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    attribute: Key,
+    value: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+    return new UpdateItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        updateExpression: {
+          ...this.#props.node.updateExpression,
+          addUpdateExpressions:
+            this.#props.node.updateExpression.addUpdateExpressions.concat({
+              kind: "AddUpdateExpression",
+              key: attribute,
+              value,
             }),
         },
       },
