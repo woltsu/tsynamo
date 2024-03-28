@@ -51,6 +51,9 @@ pnpm install tsynamo
 yarn add tsynamo
 ```
 
+> [!NOTE]
+> You can also try it out at [Tsynamo Playground](https://try.tsynamo.dev)
+
 ## Usage
 
 ### Creating a Tsynamo client
