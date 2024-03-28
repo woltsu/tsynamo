@@ -443,17 +443,29 @@ export class QueryCompiler {
     updateExpressionAttributeValues: Map<string, unknown>,
     attributeNames: Map<string, string>
   ) {
-    let res = "SET ";
+    let res = "";
 
-    res += node.setUpdateExpressions
-      .map((setUpdateExpression) => {
-        return this.compileSetUpdateExpression(
-          setUpdateExpression,
-          updateExpressionAttributeValues,
-          attributeNames
-        );
-      })
-      .join(", ");
+    if (node.setUpdateExpressions.length > 0) {
+      res += "SET ";
+      res += node.setUpdateExpressions
+        .map((setUpdateExpression) => {
+          return this.compileSetUpdateExpression(
+            setUpdateExpression,
+            updateExpressionAttributeValues,
+            attributeNames
+          );
+        })
+        .join(", ");
+    }
+
+    if (node.removeUpdateExpressions.length > 0) {
+      res += " REMOVE ";
+      res += node.removeUpdateExpressions
+        .map((removeUpdateExpression) => {
+          return removeUpdateExpression.attribute;
+        })
+        .join(", ");
+    }
 
     return res;
   }

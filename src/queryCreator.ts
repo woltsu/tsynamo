@@ -144,6 +144,7 @@ export class QueryCreator<DDB> {
         updateExpression: {
           kind: "UpdateExpression",
           setUpdateExpressions: [],
+          removeUpdateExpressions: [],
         },
       },
       ddbClient: this.#props.ddbClient,

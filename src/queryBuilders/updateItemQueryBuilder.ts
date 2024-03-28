@@ -116,7 +116,10 @@ export interface UpdateItemQueryBuilderInterface<
     pk: Keys
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  // TODO: remove
+  remove<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    attribute: Key
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+
   // TODO: add
   // TODO: delete?
 
@@ -288,6 +291,25 @@ export class UpdateItemQueryBuilder<
         },
       });
     }
+  }
+
+  remove<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+    attribute: Key
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+    return new UpdateItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        updateExpression: {
+          ...this.#props.node.updateExpression,
+          removeUpdateExpressions:
+            this.#props.node.updateExpression.removeUpdateExpressions.concat({
+              kind: "RemoveUpdateExpression",
+              attribute,
+            }),
+        },
+      },
+    });
   }
 
   returnValues(

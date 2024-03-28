@@ -1,5 +1,13 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`UpdateItemQueryBuilder > handles update item query with REMOVE statements 1`] = `
+{
+  "dataTimestamp": 200,
+  "someBoolean": true,
+  "userId": "1010",
+}
+`;
+
 exports[`UpdateItemQueryBuilder > handles update item query with SET statements 1`] = `
 {
   "dataTimestamp": 2,

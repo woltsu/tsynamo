@@ -27,11 +27,39 @@ describe("UpdateItemQueryBuilder", () => {
         );
       })
       .set("somethingElse", "+=", (qb) => {
-        return [qb.ifNotExists("somethingElse", 1), 2]
+        return [qb.ifNotExists("somethingElse", 1), 2];
       })
       .returnValues("ALL_NEW")
       .execute();
 
     expect(res).toMatchSnapshot();
+  });
+
+  it("handles update item query with REMOVE statements", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1010",
+        dataTimestamp: 200,
+        somethingElse: 313,
+        someBoolean: true,
+      })
+      .execute();
+
+    await tsynamoClient
+      .updateItem("myTable")
+      .keys({ userId: "1010", dataTimestamp: 200 })
+      .remove("somethingElse")
+      .execute();
+
+    const foundItem = await tsynamoClient
+      .getItem("myTable")
+      .keys({
+        userId: "1010",
+        dataTimestamp: 200,
+      })
+      .execute();
+
+    expect(foundItem).toMatchSnapshot();
   });
 });
