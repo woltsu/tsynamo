@@ -120,7 +120,7 @@ export interface UpdateItemQueryBuilderInterface<
     attribute: Key
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  // TODO: This should only be supported for keys that are of type NUMBER or ARRAY
+  // TODO: This should only be supported for keys that are of type NUMBER or SET
   add<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
