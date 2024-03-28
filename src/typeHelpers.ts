@@ -96,6 +96,14 @@ export type SelectAttributes<
   >
 >;
 
+export type FilteredKeys<T, U> = {
+  [K in keyof T]: T[K] extends U
+    ? T[K]
+    : T[K] extends object
+    ? FilteredKeys<T[K], U>
+    : never;
+};
+
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
     ? Array<DeepPartial<U>>
@@ -121,10 +129,6 @@ export type GetFromPath<Obj, Path> = RecursiveGet<Obj, ParsePath<Path>>;
 // `"." | "[" | "]"` union type. If it does, we split
 // the string at this position. If it does not, we
 // keep going.
-//
-// This is similar to the `RemovePunctuation` generic we have
-// seen in this chapter, except we create a tuple type instead
-// of a string here.
 type ParsePath<
   // our unparsed path string
   Path,

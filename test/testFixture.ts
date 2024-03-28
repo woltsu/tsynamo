@@ -16,13 +16,14 @@ export interface DDB {
     somethingElse: number;
     someBoolean: boolean;
     nested: {
-      nestedString: number;
+      nestedString: string;
       nestedBoolean: boolean;
       nestedNested: {
         nestedNestedBoolean: boolean;
       };
     };
     tags: string[];
+    someSet: Set<string>;
   };
   myOtherTable: {
     userId: PartitionKey<string>;

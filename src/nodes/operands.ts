@@ -11,3 +11,5 @@ export type NotExpression = "NOT";
 
 export type KeyConditionComparators = "=" | "<" | "<=" | ">" | ">=";
 export type ExpressionConditionComparators = KeyConditionComparators | "<>";
+
+export type UpdateExpressionOperands = "=" | "+=" | "-=";
