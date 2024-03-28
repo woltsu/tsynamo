@@ -4,6 +4,7 @@ exports[`UpdateItemQueryBuilder > handles update item query with SET statements 
 {
   "dataTimestamp": 2,
   "someBoolean": true,
+  "somethingElse": 3,
   "tags": [
     "test_tag",
   ],
