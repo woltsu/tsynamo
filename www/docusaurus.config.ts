@@ -68,19 +68,17 @@ const config: Config = {
       },
       items: [
         {
-          to: 'docs/quickstart',
+          label: 'Playground',
+          to:"https://try.tsynamo.dev/"
+        },
+        {
+          to: '/getting-started',
           label: 'Quickstart',
         },
         {
           to: 'docs',
           label: 'Docs',
           activeBaseRegex: 'docs(/?)$',
-        },
-        {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
-          label: 'Tutorial',
         },
         {
           href: 'https://github.com/woltsu/tsynamo',

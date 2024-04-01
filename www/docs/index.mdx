@@ -44,6 +44,15 @@ import Caching from '@site/static/icons/caching.svg';
 <a href="https://opensource.org/licenses/MIT" rel="nofollow"><img src="https://img.shields.io/github/license/woltsu/tsynamo" alt="License" /></a>
 </p>
 
+:::danger Unstable
+
+Tsynamo is still an early stage project, please post issues if you notice something missing from the API! 
+
+
+Currently the update-item command is still a work in progress, and support for batch commands is missing.
+
+:::
+
 <img src={demo} />
 
 Tsynamo simplifies the DynamoDB API so that you don't have to write commands with raw expressions and hassle with the attribute names and values. Moreover, Tsynamo makes sure you use correct types in your DynamoDB expressions, and the queries are nicer to write with autocompletion!
@@ -78,67 +87,30 @@ Tsynamo simplifies the DynamoDB API so that you don't have to write commands wit
       <h4>Basics</h4>
     </div>
     <p>You can get up and running with Tsynamo in minutes by following our Getting Started guide.</p>
-    <VersionedLink to="/getting-started/overview">
+    <Link to="/getting-started">
       See Getting Started <ArrowRight className="arrow" />
-    </VersionedLink>
+    </Link>
   </div>
   <div className="card">
     <div className="card-header">
       <Basics />
-      <h4>GraphQL API</h4>
+      <h4>Docs</h4>
     </div>
-    <p>We provide an instant GraphQL API by generating your GraphQL schema for you based on your data.</p>
-    <VersionedLink to="/schema/overview">
-      See GraphQL Schema <ArrowRight className="arrow" />
-    </VersionedLink>
-  </div>
-  <div className="card">
-    <div className="card-header">
-      <Actions />
-      <h4>Actions</h4>
-    </div>
-    <p>
-      Hasura's Actions feature allows you to write custom business logic in your preferred language and expose it as a
-      GraphQL API.
-    </p>
-    <VersionedLink to="/actions/overview">
-      See Actions <ArrowRight className="arrow" />
-    </VersionedLink>
-  </div>
-  <div className="card">
-    <div className="card-header">
-      <Cloud />
-      <h4>Remote Schemas</h4>
-    </div>
-    <p>Hasura's Remote Schemas feature allows you to combine multiple GraphQL APIs into a single unified endpoint.</p>
-    <VersionedLink to="/remote-schemas/overview">
-      See Remote Schema <ArrowRight className="arrow" />
-    </VersionedLink>
+    <p>Tsynamo fully implements the DynamoDB API. View our docs to find out more about all the functions.</p>
+    <Link to="/docs">
+      See Function Documentation <ArrowRight className="arrow" />
+    </Link>
   </div>
   <div className="card">
     <div className="card-header">
       <Auth />
-      <h4>Auth</h4>
+      <h4>Playground</h4>
     </div>
     <p>
-      By using role-based authorization and industry-standard authentication patterns, you can secure your app and your
-      data with ease.
+      The Tsynamo Playground is a perfect place to test out this librarys features and start to learn!
     </p>
-    <VersionedLink to="/auth/overview">
-      See Auth <ArrowRight className="arrow" />
-    </VersionedLink>
-  </div>
-  <div className="card">
-    <div className="card-header">
-      <Deployments />
-      <h4>Deployments</h4>
-    </div>
-    <p>
-      Whether you're using Hasura Cloud or one of your favorite one-click services, Hasura's containerization makes it
-      quick and easy to deploy.
-    </p>
-    <VersionedLink to="/deployment/deployment-guides/index">
-      See Deployment Guides <ArrowRight className="arrow" />
-    </VersionedLink>
+    <Link to="https://try.tsynamo.dev/">
+      See Playground <ArrowRight className="arrow" />
+    </Link>
   </div>
 </div>
