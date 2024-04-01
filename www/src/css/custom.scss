@@ -36,21 +36,22 @@
 
 .front-matter {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* Two columns of equal width */
   grid-gap: 40px;
-  grid-column: 1 / -1;
+  align-items: start; /* Align the items to the top of the container */
+}
 
-  iframe {
-    aspect-ratio: 16 / 9;
-    height: 100%;
-    width: 100%;
-    border-radius: 8px;
-  }
+.front-matter img {
+  width: 100%; /* Make the image take the full width of its grid cell */
+  height: auto; /* Keep the aspect ratio */
+}
 
-  @media (max-width: 1200px) {
-    grid-template-columns: 1fr;
+@media (max-width: 1200px) {
+  .front-matter {
+    grid-template-columns: 1fr; /* Stack the items on top of each other on smaller screens */
   }
 }
+
 .theme-back-to-top-button {
   display: none;
 }

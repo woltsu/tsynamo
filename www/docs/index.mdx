@@ -1,6 +1,5 @@
 ---
 id: index
-title: Tsynamo Documentation
 hide_title: true
 description: Tsynamo - Type-friendly DynamoDB query builder - documentation
 keywords:
@@ -13,6 +12,7 @@ slug: /
 sidebar_position: 1
 sidebar_label: Home
 ---
+import logo from "@site/static/img/logo.png"
 import demo from '@site/static/img/demo.gif';
 import Link from '@docusaurus/Link';
 import VersionedLink from '@site/src/components/VersionedLink';
@@ -26,43 +26,28 @@ import Cloud from '@site/static/icons/cloud.svg';
 import Observability from '@site/static/icons/observability.svg';
 import Caching from '@site/static/icons/caching.svg';
 
-# Tsynamo Documentation
-
 <div className="gallery">
   <div className="sub-heading">
-    <div className="front-matter">
-      <p>
-        The{' '}
-        <Link to="https://github.com/hasura/graphql-engine" target="_blank">
-          <b>open-source Hasura GraphQL Engine</b>
-        </Link>{' '}
-        makes your data instantly accessible over a GraphQL API, so you can build and ship modern, performant apps and
-        APIs 10x faster. Hasura connects to your databases, REST and GraphQL endpoints, and third party APIs to provide
-        a unified, connected, real-time, secured GraphQL API for all of your data. You can deploy Hasura manually using
-        our{' '}
-        <Link to="https://hub.docker.com/r/hasura/graphql-engine-base/tags" target="_blank">
-          Community Edition Docker image
-        </Link>{' '}
-        which includes all the core features of GraphQL Engine.
-        <br />
-        <br />
-        <Link to="https://cloud.hasura.io/signup/?pg=docs&plcmt=body&cta=hasura-cloud&tech=default" target="_blank">
-          <b>Hasura Cloud</b>
-        </Link> 
-        empowers you to create highly optimized, managed and massively scalable Hasura instances in seconds and includes
-        extra reliability, monitoring, caching, tracing, security and deployment features.
-        <br />
-        <br />
-        <VersionedLink to="/enterprise/overview">
-          <b>Hasura Enterprise Edition</b>
-        </VersionedLink>{' '}
-        builds on all the features of the Hasura GraphQL Engine while giving you an enterprise-ready solution - complete
-        with key features like observability, security, and performance - deployable in minutes. You can try Hasura
-        Enterprise Edition for free with a{' '}
-        <VersionedLink to="/enterprise/try-hasura-enterprise-edition">30-day trial</VersionedLink>.
-      </p>
-      <img src={demo} alt="Demo video" />
-    </div>
+  <p align="center">
+  <img src={logo} width="400px" align="center" alt="Tsynamo logo - The logo has the DynamoDB logo on the left and the Typescript logo on the right with a red heart in between" />
+  <h1 align="center">Tsynamo</h1>
+  <p align="center">
+    ✨ Type-friendly DynamoDB query builder! ✨
+    <br/>
+    Inspired by <a href="https://github.com/kysely-org/kysely/tree/master" rel="nofollow">Kysely</a>
+  </p>
+</p>
+<br/>
+<p align="center">
+<a href="https://github.com/woltsu/tsynamo/actions?query=branch%main"><img src="https://github.com/woltsu/tsynamo/actions/workflows/deploy.yml/badge.svg?event=push&branch=main" alt="Tsynamo CI status" /></a>
+<a href="https://www.npmjs.com/package/tsynamo"><img src="https://img.shields.io/npm/v/tsynamo.svg?style=flat&color=brightgreen" target="_blank" /></a>
+<a href="https://opensource.org/licenses/MIT" rel="nofollow"><img src="https://img.shields.io/github/license/woltsu/tsynamo" alt="License" /></a>
+</p>
+
+<img src={demo} />
+
+Tsynamo simplifies the DynamoDB API so that you don't have to write commands with raw expressions and hassle with the attribute names and values. Moreover, Tsynamo makes sure you use correct types in your DynamoDB expressions, and the queries are nicer to write with autocompletion!
+
   </div>
   <div className="sub-heading">
     <h3>Popular Topics</h3>
@@ -72,7 +57,7 @@ import Caching from '@site/static/icons/caching.svg';
       <Basics />
       <h4>Basics</h4>
     </div>
-    <p>You can get up and running with Hasura in minutes by following our Getting Started guide.</p>
+    <p>You can get up and running with Tsynamo in minutes by following our Getting Started guide.</p>
     <VersionedLink to="/getting-started/overview">
       See Getting Started <ArrowRight className="arrow" />
     </VersionedLink>
