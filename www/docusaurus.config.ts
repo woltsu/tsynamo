@@ -76,8 +76,8 @@ const config: Config = {
           label: 'Quickstart',
         },
         {
-          to: '/category/docs',
-          label: 'Docs',
+          to: '/category/api',
+          label: 'API',
         },
         {
           href: 'https://github.com/woltsu/tsynamo',
