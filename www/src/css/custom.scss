@@ -84,3 +84,15 @@ html[data-theme='dark'] {
     background-color: var(--color-gray-0);
   }
 }
+
+
+.no-border-table table {
+  border: none;
+  border-collapse: collapse;
+}
+
+.no-border-table th,
+.no-border-table tr,
+.no-border-table td {
+  border: none;
+}
