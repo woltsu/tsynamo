@@ -28,5 +28,46 @@ Run the following command in your terminal:
 
 <Types />
 
+## Instantiation
+
+Create a DynamoDB document client:
+
+```typescript title="client.ts"
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+
+const ddbClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({/* Configure DDB client */})
+);
+```
+:::note
+The document client must come from **@aws-sdk/lib-dynamodb**!
+:::
+
+Create a Tsynamo client with the defined DynamoDB types and client:
+```typescript title="client.ts"
+import { Tsynamo } from "tsynamo";
+import type { DDB } from "./types";
+export const tsynamoClient = new Tsynamo<DDB>({ ddbClient });
+```
+
+Use the client accordingly to the [API](/category/api):
+
+```typescript title="events.ts"
+import { tsynamoClient } from "./client";
+
+await tsynamoClient
+  .getItem("UserEvents")
+  .keys({
+    userId: "123",
+    eventId: 222,
+  })
+  .attributes(["userId"])
+  .execute();
+```
+
+
+
+
 
 

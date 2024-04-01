@@ -53,9 +53,9 @@ const config: Config = {
 
   themeConfig: {
     colorMode: {
-      defaultMode: 'light',
+      defaultMode: 'dark',
       disableSwitch: false,
-      respectPrefersColorScheme: false,
+      respectPrefersColorScheme: true,
     },
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
@@ -76,9 +76,8 @@ const config: Config = {
           label: 'Quickstart',
         },
         {
-          to: 'docs',
+          to: '/category/docs',
           label: 'Docs',
-          activeBaseRegex: 'docs(/?)$',
         },
         {
           href: 'https://github.com/woltsu/tsynamo',
