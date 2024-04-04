@@ -6,15 +6,8 @@
 @use 'default-fonts-and-colors';
 @use 'header';
 @use 'sidebar';
-@use 'table-of-contents';
 @use 'doc';
-@use 'footer';
 @use 'introduction-page';
-@use 'overview-page';
-@use 'cloud-db-icon-gallery';
-@use 'admonitions';
-@use 'badges';
-@use 'tables';
 
 /* Custom Styles */
 .no-shadow {
