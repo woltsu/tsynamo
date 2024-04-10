@@ -156,5 +156,34 @@ describe("UpdateItemQueryBuilder", () => {
     expect(foundItem).toMatchSnapshot();
   });
 
-  it.todo("handles update item query with condition expressions");
+  it("handles update item query with condition expressions", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1",
+        dataTimestamp: 2,
+        someSet: new Set(["1", "2", "3"]),
+        somethingElse: 0,
+      })
+      .execute();
+
+    expect(
+      tsynamoClient
+        .updateItem("myTable")
+        .keys({ userId: "1", dataTimestamp: 2 })
+        .remove("someSet")
+        .remove("somethingElse")
+        .conditionExpression("somethingElse", ">", 0)
+        .execute()
+    ).rejects.toMatchInlineSnapshot(
+      `[ConditionalCheckFailedException: The conditional request failed]`
+    );
+
+    const foundItem = await tsynamoClient
+      .getItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .execute();
+
+    expect(foundItem).toMatchSnapshot();
+  });
 });

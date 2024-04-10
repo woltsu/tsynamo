@@ -117,6 +117,7 @@ export interface UpdateItemQueryBuilderInterface<
     pk: Keys
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
+  // TODO: Make it possible to delete a whole object, and not just nested keys
   remove<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     attribute: Key
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
