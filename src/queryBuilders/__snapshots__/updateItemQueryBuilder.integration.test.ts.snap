@@ -47,3 +47,21 @@ exports[`UpdateItemQueryBuilder > handles update item query with SET statements 
   "userId": "1",
 }
 `;
+
+exports[`UpdateItemQueryBuilder > handles update item query with multiple different operations 1`] = `
+{
+  "dataTimestamp": 2,
+  "nested": {
+    "nestedBoolean": true,
+  },
+  "someSet": Set {
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+  },
+  "somethingElse": 10,
+  "userId": "1",
+}
+`;

@@ -121,4 +121,40 @@ describe("UpdateItemQueryBuilder", () => {
 
     expect(foundItem).toMatchSnapshot();
   });
+
+  it("handles update item query with multiple different operations", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1",
+        dataTimestamp: 2,
+        someSet: new Set(["1", "2", "3"]),
+        somethingElse: 0,
+        nested: {
+          nestedSet: new Set(["4", "5"]),
+          nestedBoolean: false,
+          nestedString: "hello i am nested",
+        },
+      })
+      .execute();
+
+    await tsynamoClient
+      .updateItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .set("nested.nestedBoolean", "=", true)
+      .remove("nested.nestedString")
+      .add("somethingElse", 10)
+      .add("someSet", new Set(["4", "5"]))
+      .delete("nested.nestedSet", new Set(["4", "5"]))
+      .execute();
+
+    const foundItem = await tsynamoClient
+      .getItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .execute();
+
+    expect(foundItem).toMatchSnapshot();
+  });
+
+  it.todo("handles update item query with condition expressions");
 });
