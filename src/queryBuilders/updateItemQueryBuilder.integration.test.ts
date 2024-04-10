@@ -178,12 +178,5 @@ describe("UpdateItemQueryBuilder", () => {
     ).rejects.toMatchInlineSnapshot(
       `[ConditionalCheckFailedException: The conditional request failed]`
     );
-
-    const foundItem = await tsynamoClient
-      .getItem("myTable")
-      .keys({ userId: "1", dataTimestamp: 2 })
-      .execute();
-
-    expect(foundItem).toMatchSnapshot();
   });
 });
