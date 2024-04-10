@@ -266,7 +266,18 @@ await tsynamoClient
 
 ### Update item
 
-WIP
+```ts
+await tsynamoClient
+  .updateItem("myTable")
+  .keys({ userId: "1", dataTimestamp: 2 })
+  .set("nested.nestedBoolean", "=", true)
+  .remove("nested.nestedString")
+  .add("somethingElse", 10)
+  .add("someSet", new Set(["4", "5"]))
+  .delete("nested.nestedSet", new Set(["4", "5"]))
+  .conditionExpression("somethingElse", ">", 0)
+  .execute();
+```
 
 ## Contributors
 

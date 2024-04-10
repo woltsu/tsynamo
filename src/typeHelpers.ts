@@ -96,9 +96,24 @@ export type SelectAttributes<
   >
 >;
 
+type IsArray<T> = T extends unknown[] ? true : false;
+
+export type FilteredKeys<T, U> = {
+  // TODO: Add support for recursively checking tuple values here
+  [K in keyof T]: IsArray<T[K]> extends false
+    ? T[K] extends U
+      ? T[K]
+      : T[K] extends object
+      ? FilteredKeys<T[K], U>
+      : never
+    : never;
+};
+
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
     ? Array<DeepPartial<U>>
+    : T[P] extends Set<unknown>
+    ? T[P]
     : T[P] extends object
     ? DeepPartial<T[P]>
     : T[P];
@@ -121,10 +136,6 @@ export type GetFromPath<Obj, Path> = RecursiveGet<Obj, ParsePath<Path>>;
 // `"." | "[" | "]"` union type. If it does, we split
 // the string at this position. If it does not, we
 // keep going.
-//
-// This is similar to the `RemovePunctuation` generic we have
-// seen in this chapter, except we create a tuple type instead
-// of a string here.
 type ParsePath<
   // our unparsed path string
   Path,
