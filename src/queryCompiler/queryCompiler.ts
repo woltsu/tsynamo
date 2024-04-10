@@ -24,6 +24,7 @@ import {
 } from "./compilerUtil";
 import { RemoveUpdateExpression } from "../nodes/removeUpdateExpression";
 import { AddUpdateExpression } from "../nodes/addUpdateExpression";
+import { DeleteUpdateExpression } from "../nodes/deleteUpdateExpression";
 
 export class QueryCompiler {
   compile(rootNode: QueryNode): QueryCommand;
@@ -485,7 +486,18 @@ export class QueryCompiler {
         .join(", ");
     }
 
-    // TODO: Compile ADD actions
+    if (node.deleteUpdateExpressions.length > 0) {
+      res += " DELETE ";
+      res += node.deleteUpdateExpressions
+        .map((deleteUpdateExpression) => {
+          return this.compileDeleteUpdateExpression(
+            deleteUpdateExpression,
+            updateExpressionAttributeValues,
+            attributeNames
+          );
+        })
+        .join(", ");
+    }
 
     return res;
   }
@@ -656,6 +668,24 @@ export class QueryCompiler {
 
     const offset = updateExpressionAttributeValues.size;
     const attributeValue = `:addUpdateExpressionValue${offset}`;
+    updateExpressionAttributeValues.set(attributeValue, node.value);
+
+    return `${attributeName} ${attributeValue}`;
+  }
+
+  compileDeleteUpdateExpression(
+    node: DeleteUpdateExpression,
+    updateExpressionAttributeValues: Map<string, unknown>,
+    attributeNames: Map<string, string>
+  ) {
+    const { expressionAttributeName, attributeNameMap } =
+      this.compileAttributeName(node.key);
+
+    const attributeName = expressionAttributeName;
+    mergeObjectIntoMap(attributeNames, attributeNameMap);
+
+    const offset = updateExpressionAttributeValues.size;
+    const attributeValue = `:deleteUpdateExpressionValue${offset}`;
     updateExpressionAttributeValues.set(attributeValue, node.value);
 
     return `${attributeName} ${attributeValue}`;

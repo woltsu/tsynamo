@@ -21,6 +21,7 @@ export interface DDB {
       nestedNested: {
         nestedNestedBoolean: boolean;
       };
+      nestedSet: Set<string>
     };
     tags: string[];
     someSet: Set<string>;

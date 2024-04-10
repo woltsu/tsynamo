@@ -93,4 +93,32 @@ describe("UpdateItemQueryBuilder", () => {
 
     expect(foundItem).toMatchSnapshot();
   });
+
+  it("handles update item query with DELETE statements", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1",
+        dataTimestamp: 2,
+        someSet: new Set(["1", "2", "3"]),
+        nested: {
+          nestedSet: new Set(["4", "5"]),
+        },
+      })
+      .execute();
+
+    await tsynamoClient
+      .updateItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .delete("someSet", new Set(["2", "3"]))
+      .delete("nested.nestedSet", new Set(["4"]))
+      .execute();
+
+    const foundItem = await tsynamoClient
+      .getItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .execute();
+
+    expect(foundItem).toMatchSnapshot();
+  });
 });

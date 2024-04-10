@@ -6,12 +6,13 @@ import { UpdateNode } from "../nodes/updateNode";
 import { QueryCompiler } from "../queryCompiler";
 import {
   ExecuteOutput,
+  FilteredKeys,
   GetFromPath,
   ObjectKeyPaths,
+  PickNonKeys,
   PickPk,
   PickSkRequired,
   StripKeys,
-  PickNonKeys,
 } from "../typeHelpers";
 import { preventAwait } from "../util/preventAwait";
 import {
@@ -120,13 +121,23 @@ export interface UpdateItemQueryBuilderInterface<
     attribute: Key
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  // TODO: This should only be supported for keys that are of type NUMBER or SET
-  add<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+  add<
+    Key extends ObjectKeyPaths<
+      FilteredKeys<PickNonKeys<DDB[Table]>, Set<unknown> | number>
+    >
+  >(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
   ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
-  // TODO: Add support for DELETE action
+  delete<
+    Key extends ObjectKeyPaths<
+      FilteredKeys<PickNonKeys<DDB[Table]>, Set<unknown>>
+    >
+  >(
+    attribute: Key,
+    value: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
 
   returnValues(
     option: ReturnValuesOptions
@@ -330,6 +341,29 @@ export class UpdateItemQueryBuilder<
           addUpdateExpressions:
             this.#props.node.updateExpression.addUpdateExpressions.concat({
               kind: "AddUpdateExpression",
+              key: attribute,
+              value,
+            }),
+        },
+      },
+    });
+  }
+
+  delete<
+    Key extends ObjectKeyPaths<FilteredKeys<PickNonKeys<DDB[Table]>, Set<any>>>
+  >(
+    attribute: Key,
+    value: StripKeys<GetFromPath<DDB[Table], Key>>
+  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+    return new UpdateItemQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        updateExpression: {
+          ...this.#props.node.updateExpression,
+          deleteUpdateExpressions:
+            this.#props.node.updateExpression.deleteUpdateExpressions.concat({
+              kind: "DeleteUpdateExpression",
               key: attribute,
               value,
             }),

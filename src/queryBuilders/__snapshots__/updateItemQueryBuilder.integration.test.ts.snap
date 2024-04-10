@@ -13,6 +13,21 @@ exports[`UpdateItemQueryBuilder > handles update item query with ADD statements 
 }
 `;
 
+exports[`UpdateItemQueryBuilder > handles update item query with DELETE statements 1`] = `
+{
+  "dataTimestamp": 2,
+  "nested": {
+    "nestedSet": Set {
+      "5",
+    },
+  },
+  "someSet": Set {
+    "1",
+  },
+  "userId": "1",
+}
+`;
+
 exports[`UpdateItemQueryBuilder > handles update item query with REMOVE statements 1`] = `
 {
   "dataTimestamp": 200,
