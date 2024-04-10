@@ -19,7 +19,7 @@
 Tsynamo simplifies the DynamoDB API so that you don't have to write commands with raw expressions and hassle with the attribute names and values. Moreover, Tsynamo makes sure you use correct types in your DynamoDB expressions, and the queries are nicer to write with autocompletion!
 
 > [!WARNING]  
-> Tsynamo is still an early stage project, please post issues if you notice something missing from the API! Currently the `update-item` command is still a work in progress, and support for batch commands is missing.
+> Tsynamo is still an early stage project, please post issues if you notice something missing from the API!
 
 ## Table of contents
 
