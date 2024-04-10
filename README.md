@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" width="400px" align="center" alt="Tsynamo logo - The logo has the DynamoDB logo on the left and the Typescript logo on the right with a red heart in between" />
+  <img src="https://github.com/woltsu/tsynamo/blob/5fb5bb349887f0b8f0c903cbba93feb2a4a1ae50/assets/logo.png" width="400px" align="center" alt="Tsynamo logo - The logo has the DynamoDB logo on the left and the Typescript logo on the right with a red heart in between" />
   <h1 align="center">Tsynamo</h1>
   <p align="center">
     ✨ Type-friendly DynamoDB query builder! ✨
@@ -14,7 +14,7 @@
 <a href="https://opensource.org/licenses/MIT" rel="nofollow"><img src="https://img.shields.io/github/license/woltsu/tsynamo" alt="License"></a>
 </p>
 
-![](assets/demo.gif)
+![](https://github.com/woltsu/tsynamo/blob/5fb5bb349887f0b8f0c903cbba93feb2a4a1ae50/assets/demo.gif)
 
 Tsynamo simplifies the DynamoDB API so that you don't have to write commands with raw expressions and hassle with the attribute names and values. Moreover, Tsynamo makes sure you use correct types in your DynamoDB expressions, and the queries are nicer to write with autocompletion!
 
