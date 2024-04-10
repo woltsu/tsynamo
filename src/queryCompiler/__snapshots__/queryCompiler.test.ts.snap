@@ -309,3 +309,113 @@ QueryCommand {
   },
 }
 `;
+
+exports[`QueryQueryBuilder > updateItemQueryBuilder can be compiled 1`] = `
+UpdateCommand {
+  "clientCommand": UpdateItemCommand {
+    "deserialize": [Function],
+    "input": {
+      "ConditionExpression": undefined,
+      "ExpressionAttributeNames": {
+        "#nested": "nested",
+        "#nestedBoolean": "nestedBoolean",
+        "#nestedSet": "nestedSet",
+        "#someBoolean": "someBoolean",
+        "#someSet": "someSet",
+      },
+      "ExpressionAttributeValues": {
+        ":addUpdateExpressionValue1": Set {
+          "1",
+          "2",
+        },
+        ":deleteUpdateExpressionValue2": Set {
+          "a",
+        },
+        ":setUpdateExpressionValue0": true,
+      },
+      "Key": {
+        "dataTimestamp": 2,
+        "userId": "1",
+      },
+      "ReturnValues": undefined,
+      "TableName": "myTable",
+      "UpdateExpression": "SET #nested.#nestedBoolean = :setUpdateExpressionValue0 REMOVE #someBoolean ADD #someSet :addUpdateExpressionValue1 DELETE #nested.#nestedSet :deleteUpdateExpressionValue2",
+    },
+    "middlewareStack": {
+      "add": [Function],
+      "addRelativeTo": [Function],
+      "applyToStack": [Function],
+      "clone": [Function],
+      "concat": [Function],
+      "identify": [Function],
+      "identifyOnResolve": [Function],
+      "remove": [Function],
+      "removeByTag": [Function],
+      "resolve": [Function],
+      "use": [Function],
+    },
+    "serialize": [Function],
+  },
+  "input": {
+    "ConditionExpression": undefined,
+    "ExpressionAttributeNames": {
+      "#nested": "nested",
+      "#nestedBoolean": "nestedBoolean",
+      "#nestedSet": "nestedSet",
+      "#someBoolean": "someBoolean",
+      "#someSet": "someSet",
+    },
+    "ExpressionAttributeValues": {
+      ":addUpdateExpressionValue1": Set {
+        "1",
+        "2",
+      },
+      ":deleteUpdateExpressionValue2": Set {
+        "a",
+      },
+      ":setUpdateExpressionValue0": true,
+    },
+    "Key": {
+      "dataTimestamp": 2,
+      "userId": "1",
+    },
+    "ReturnValues": undefined,
+    "TableName": "myTable",
+    "UpdateExpression": "SET #nested.#nestedBoolean = :setUpdateExpressionValue0 REMOVE #someBoolean ADD #someSet :addUpdateExpressionValue1 DELETE #nested.#nestedSet :deleteUpdateExpressionValue2",
+  },
+  "inputKeyNodes": {
+    "AttributeUpdates": {
+      "*": {
+        "Value": null,
+      },
+    },
+    "Expected": {
+      "*": {
+        "AttributeValueList": [],
+        "Value": null,
+      },
+    },
+    "ExpressionAttributeValues": {},
+    "Key": {},
+  },
+  "middlewareStack": {
+    "add": [Function],
+    "addRelativeTo": [Function],
+    "applyToStack": [Function],
+    "clone": [Function],
+    "concat": [Function],
+    "identify": [Function],
+    "identifyOnResolve": [Function],
+    "remove": [Function],
+    "removeByTag": [Function],
+    "resolve": [Function],
+    "use": [Function],
+  },
+  "outputKeyNodes": {
+    "Attributes": {},
+    "ItemCollectionMetrics": {
+      "ItemCollectionKey": {},
+    },
+  },
+}
+`;

@@ -13,8 +13,8 @@ describe("QueryQueryBuilder", () => {
     });
   });
 
-  it("queryQueryBuilder can be compiled", async () => {
-    const data = await tsynamoClient
+  it("queryQueryBuilder can be compiled", () => {
+    const data = tsynamoClient
       .query("myTable")
       .keyCondition("userId", "=", "123")
       .filterExpression("someBoolean", "=", true)
@@ -25,8 +25,8 @@ describe("QueryQueryBuilder", () => {
     expect(data).toMatchSnapshot();
   });
 
-  it("putItemQueryBuilder can be compiled", async () => {
-    const data = await tsynamoClient
+  it("putItemQueryBuilder can be compiled", () => {
+    const data = tsynamoClient
       .putItem("myTable")
       .item({
         userId: "333",
@@ -38,8 +38,8 @@ describe("QueryQueryBuilder", () => {
     expect(data).toMatchSnapshot();
   });
 
-  it("getItemQueryBuilder can be compiled", async () => {
-    const data = await tsynamoClient
+  it("getItemQueryBuilder can be compiled", () => {
+    const data = tsynamoClient
       .getItem("myTable")
       .keys({
         userId: TEST_DATA[1].userId,
@@ -50,8 +50,8 @@ describe("QueryQueryBuilder", () => {
     expect(data).toMatchSnapshot();
   });
 
-  it("deleteItemQueryBuilder can be compiled", async () => {
-    const data = await tsynamoClient
+  it("deleteItemQueryBuilder can be compiled", () => {
+    const data = tsynamoClient
       .deleteItem("myTable")
       .keys({
         userId: "1",
@@ -63,5 +63,19 @@ describe("QueryQueryBuilder", () => {
     expect(data).toMatchSnapshot();
   });
 
-  it.todo("updateItemQueryBuilder can be compiled");
+  it("updateItemQueryBuilder can be compiled", () => {
+    const data = tsynamoClient
+      .updateItem("myTable")
+      .keys({
+        userId: "1",
+        dataTimestamp: 2,
+      })
+      .add("someSet", new Set(["1", "2"]))
+      .set("nested.nestedBoolean", "=", true)
+      .remove("someBoolean")
+      .delete("nested.nestedSet", new Set(["a"]))
+      .compile();
+
+    expect(data).toMatchSnapshot();
+  });
 });
