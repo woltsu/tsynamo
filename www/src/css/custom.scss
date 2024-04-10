@@ -1,0 +1,91 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+@use 'default-fonts-and-colors';
+@use 'header';
+@use 'sidebar';
+@use 'doc';
+@use 'introduction-page';
+
+/* Custom Styles */
+.no-shadow {
+  box-shadow: none !important;
+}
+
+.close {
+  color: #fff;
+  opacity: 0.75;
+}
+
+.sub-heading {
+  grid-column: 1 / -1;
+
+  h3 {
+    margin-bottom: 10px;
+  }
+}
+
+.front-matter {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns of equal width */
+  grid-gap: 40px;
+  align-items: start; /* Align the items to the top of the container */
+}
+
+.front-matter img {
+  width: 100%; /* Make the image take the full width of its grid cell */
+  height: auto; /* Keep the aspect ratio */
+}
+
+@media (max-width: 1200px) {
+  .front-matter {
+    grid-template-columns: 1fr; /* Stack the items on top of each other on smaller screens */
+  }
+}
+
+.theme-back-to-top-button {
+  display: none;
+}
+
+.arrow {
+  transition: all 0.3s ease-in-out;
+  display: grid;
+  margin-left: 6px;
+
+  path {
+    stroke: var(--ifm-link-color);
+  }
+}
+
+.heading-badge {
+  font-size: 0.9rem;
+  + p {
+    margin-top: 1rem;
+  }
+}
+
+.theme-doc-sidebar-item-link {
+  font-size: 0.8rem;
+}
+
+/* Dark Mode Styles */
+
+html[data-theme='dark'] {
+  .no-shadow {
+    background-color: var(--color-gray-0);
+  }
+}
+
+
+.no-border-table table {
+  border: none;
+  border-collapse: collapse;
+}
+
+.no-border-table th,
+.no-border-table tr,
+.no-border-table td {
+  border: none;
+}

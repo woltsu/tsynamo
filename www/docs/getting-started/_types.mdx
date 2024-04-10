@@ -1,0 +1,40 @@
+For Tsynamo's type-safety and autocompletion to work, it needs to know your
+database structure. This requires a TypeScript <code>DDB</code>
+interface, that contains table names as keys and table schema interfaces as
+values.
+
+**Let's define our first database interface:**
+
+```ts title="types.ts"
+import { PartitionKey, SortKey } from "tsynamo";
+
+export interface DDB {
+  UserEvents: {
+    userId: PartitionKey<string>; // It is important to mark the Partition Key as it enables Tsynamo to help you from messing up
+    eventId: SortKey<number>;
+    eventType: string;
+    userAuthenticated: boolean;
+  };
+  Users: {
+    userId: PartitionKey<string>;
+    userName: string;
+  }
+}
+```
+
+:::tip Multiple Tables
+Note that you can have multiple tables in the DDB schema. Nested attributes are supported too.
+:::
+
+:::tip Codegen (NOT YET IMPLEMENTED)
+
+For production apps, it is recommended to automatically generate your <code>DDB</code>
+interface by introspecting your production database.
+:::
+
+:::info Runtime types
+
+Tsynamo only deals with types in the typescript level. Tsynamo never touches the runtime output types in
+any way.
+
+:::
