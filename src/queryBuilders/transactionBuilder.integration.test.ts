@@ -16,7 +16,7 @@ describe("TransactionBuilder", () => {
     });
   });
 
-  it("handles puts", async () => {
+  it("handles transaction with puts", async () => {
     const trx = tsynamoClient.createTransaction();
 
     trx.addItem({
@@ -41,7 +41,7 @@ describe("TransactionBuilder", () => {
     expect(result).toMatchSnapshot();
   });
 
-  it("handles deletes", async () => {
+  it("handles transaction with deletes", async () => {
     await tsynamoClient
       .putItem("myTable")
       .item({ userId: "9999", dataTimestamp: 1 })
@@ -109,5 +109,42 @@ describe("TransactionBuilder", () => {
       .execute();
 
     expect(foundItem).toBeUndefined();
+  });
+
+  it("handles transaction with updates", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({ userId: "1", dataTimestamp: 1 })
+      .execute();
+
+    await tsynamoClient
+      .putItem("myTable")
+      .item({ userId: "1", dataTimestamp: 2 })
+      .execute();
+
+    const trx = tsynamoClient.createTransaction();
+
+    trx.addItem({
+      Update: tsynamoClient
+        .updateItem("myTable")
+        .keys({ userId: "9999", dataTimestamp: 1 })
+        .set("someBoolean", "=", true),
+    });
+
+    trx.addItem({
+      Update: tsynamoClient
+        .updateItem("myTable")
+        .keys({ userId: "9999", dataTimestamp: 2 })
+        .set("tags", "=", ["a", "b", "c"]),
+    });
+
+    await trx.execute();
+
+    const result = await tsynamoClient
+      .query("myTable")
+      .keyCondition("userId", "=", "9999")
+      .execute();
+
+    expect(result).toMatchSnapshot();
   });
 });

@@ -1,4 +1,4 @@
-import { TransactWriteItem } from "@aws-sdk/client-dynamodb";
+import { TransactWriteItem, Update } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
   DeleteCommandInput,
@@ -228,6 +228,10 @@ export class QueryCompiler {
   }
 
   compileUpdateNode(updateNode: UpdateNode) {
+    return new UpdateCommand(this.compileUpdateCmdInput(updateNode));
+  }
+
+  compileUpdateCmdInput(updateNode: UpdateNode) {
     const {
       table: tableNode,
       conditionExpression: conditionExpressionNode,
@@ -251,7 +255,7 @@ export class QueryCompiler {
       attributeNames
     );
 
-    return new UpdateCommand({
+    return {
       TableName: tableNode.table,
       Key: keysNode?.keys,
       ReturnValues: returnValuesNode?.option,
@@ -273,7 +277,7 @@ export class QueryCompiler {
               ...Object.fromEntries(attributeNames),
             }
           : undefined,
-    });
+    };
   }
 
   compileTransactionNode(transactionNode: TransactionNode) {
@@ -286,6 +290,12 @@ export class QueryCompiler {
 
       if (item.Delete) {
         compiledTransactItem.Delete = this.compileDeleteCmdInput(item.Delete);
+      }
+
+      if (item.Update) {
+        compiledTransactItem.Update = this.compileUpdateCmdInput(
+          item.Update
+        ) as Update;
       }
 
       return compiledTransactItem;

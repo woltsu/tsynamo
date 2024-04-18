@@ -12,3 +12,35 @@ exports[`TransactionBuilder > handles puts 1`] = `
   },
 ]
 `;
+
+exports[`TransactionBuilder > handles transaction with puts 1`] = `
+[
+  {
+    "dataTimestamp": 1,
+    "userId": "9999",
+  },
+  {
+    "dataTimestamp": 2,
+    "userId": "9999",
+  },
+]
+`;
+
+exports[`TransactionBuilder > handles transaction with updates 1`] = `
+[
+  {
+    "dataTimestamp": 1,
+    "someBoolean": true,
+    "userId": "9999",
+  },
+  {
+    "dataTimestamp": 2,
+    "tags": [
+      "a",
+      "b",
+      "c",
+    ],
+    "userId": "9999",
+  },
+]
+`;

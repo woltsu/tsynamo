@@ -31,71 +31,71 @@ import { SetUpdateExpressionFunctionQueryBuilder } from "./setUpdateExpressionFu
 export interface UpdateItemQueryBuilderInterface<
   DDB,
   Table extends keyof DDB,
-  O
+  O extends DDB[Table]
 > {
   // conditionExpression
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   // orConditionExpression
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
     operand: UpdateExpressionOperands,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
@@ -103,7 +103,7 @@ export interface UpdateItemQueryBuilderInterface<
     value: (
       builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
     ) => SetUpdateExpressionFunction
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   set<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     key: Key,
@@ -111,16 +111,16 @@ export interface UpdateItemQueryBuilderInterface<
     value: (
       builder: SetUpdateExpressionFunctionQueryBuilder<DDB, Table, DDB[Table]>
     ) => [SetUpdateExpressionFunction, number]
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   // TODO: Make it possible to delete a whole object, and not just nested keys
   remove<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     attribute: Key
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   add<
     Key extends ObjectKeyPaths<
@@ -129,7 +129,7 @@ export interface UpdateItemQueryBuilderInterface<
   >(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   delete<
     Key extends ObjectKeyPaths<
@@ -138,11 +138,11 @@ export interface UpdateItemQueryBuilderInterface<
   >(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   returnValues(
     option: ReturnValuesOptions
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
 
   compile(): UpdateCommand;
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
@@ -162,7 +162,7 @@ export class UpdateItemQueryBuilder<
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -180,7 +180,7 @@ export class UpdateItemQueryBuilder<
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -225,7 +225,7 @@ export class UpdateItemQueryBuilder<
             >
           ) => [SetUpdateExpressionFunction, number]
         ]
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     const [key, operand, right] = args;
 
     if (typeof right === "function") {
@@ -312,7 +312,7 @@ export class UpdateItemQueryBuilder<
 
   remove<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     attribute: Key
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     return new UpdateItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -332,7 +332,7 @@ export class UpdateItemQueryBuilder<
   add<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     return new UpdateItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -355,7 +355,7 @@ export class UpdateItemQueryBuilder<
   >(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     return new UpdateItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -375,7 +375,7 @@ export class UpdateItemQueryBuilder<
 
   returnValues(
     option: ReturnValuesOptions
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O> {
+  ): UpdateItemQueryBuilder<DDB, Table, O> {
     return new UpdateItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -412,6 +412,10 @@ export class UpdateItemQueryBuilder<
     const data = await this.#props.ddbClient.send(putCommand);
     return data.Attributes as any;
   };
+
+  public get node() {
+    return this.#props.node;
+  }
 }
 
 preventAwait(

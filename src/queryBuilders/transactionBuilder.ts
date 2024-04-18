@@ -3,14 +3,16 @@ import { TransactionNode } from "../nodes/transactionNode";
 import { QueryCompiler } from "../queryCompiler";
 import { PutItemQueryBuilder } from "./putItemQueryBuilder";
 import { DeleteItemQueryBuilder } from "./deleteItemQueryBuilder";
+import { UpdateItemQueryBuilder } from "./updateItemQueryBuilder";
 
 export interface TransactionBuilderInterface<DDB> {
   /**
-   * TODO: Update, ConditionCheck
+   * TODO: ConditionCheck
    */
   addItem(item: {
     Put?: PutItemQueryBuilder<DDB, any, any>;
     Delete?: DeleteItemQueryBuilder<DDB, any, any>;
+    Update?: UpdateItemQueryBuilder<DDB, any, any>;
   }): void;
 
   execute(): Promise<void>;
@@ -28,11 +30,13 @@ export class TransactionBuilder<DDB>
   addItem(item: {
     Put?: PutItemQueryBuilder<DDB, any, any>;
     Delete?: DeleteItemQueryBuilder<DDB, any, any>;
+    Update?: UpdateItemQueryBuilder<DDB, any, any>;
   }) {
     this.#props.node.transactItems.push({
       kind: "TransactItemNode",
       Put: item.Put?.node,
       Delete: item.Delete?.node,
+      Update: item.Update?.node,
     });
   }
 
