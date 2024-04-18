@@ -22,7 +22,7 @@ import { QueryNode } from "../nodes/queryNode";
 import { RemoveUpdateExpression } from "../nodes/removeUpdateExpression";
 import { SetUpdateExpression } from "../nodes/setUpdateExpression";
 import { SetUpdateExpressionFunction } from "../nodes/setUpdateExpressionFunction";
-import { TransactionNode } from "../nodes/transactionNode";
+import { WriteTransactionNode } from "../nodes/transactionNode";
 import { UpdateExpression } from "../nodes/updateExpression";
 import { UpdateNode } from "../nodes/updateNode";
 import {
@@ -37,7 +37,7 @@ export class QueryCompiler {
   compile(rootNode: PutNode): PutCommand;
   compile(rootNode: DeleteNode): DeleteCommand;
   compile(rootNode: UpdateNode): UpdateCommand;
-  compile(rootNode: TransactionNode): TransactWriteCommand;
+  compile(rootNode: WriteTransactionNode): TransactWriteCommand;
   compile(
     rootNode:
       | QueryNode
@@ -45,7 +45,7 @@ export class QueryCompiler {
       | PutNode
       | DeleteNode
       | UpdateNode
-      | TransactionNode
+      | WriteTransactionNode
   ) {
     switch (rootNode.kind) {
       case "GetNode":
@@ -58,7 +58,7 @@ export class QueryCompiler {
         return this.compileDeleteNode(rootNode);
       case "UpdateNode":
         return this.compileUpdateNode(rootNode);
-      case "TransactionNode":
+      case "WriteTransactionNode":
         return this.compileTransactionNode(rootNode);
     }
   }
@@ -280,8 +280,8 @@ export class QueryCompiler {
     };
   }
 
-  compileTransactionNode(transactionNode: TransactionNode) {
-    const TransactItems = transactionNode.transactItems.map((item) => {
+  compileTransactionNode(transactionNode: WriteTransactionNode) {
+    const TransactItems = transactionNode.transactWriteItems.map((item) => {
       const compiledTransactItem: TransactWriteItem = {};
 
       if (item.Put) {

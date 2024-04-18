@@ -1,6 +1,6 @@
-import { TransactItemNode } from "./TransactItemNode";
+import { TransactWriteItemNode } from "./TransactItemNode";
 
-export type TransactionNode = {
-  readonly kind: "TransactionNode";
-  readonly transactItems: TransactItemNode[];
+export type WriteTransactionNode = {
+  readonly kind: "WriteTransactionNode";
+  readonly transactWriteItems: TransactWriteItemNode[];
 };

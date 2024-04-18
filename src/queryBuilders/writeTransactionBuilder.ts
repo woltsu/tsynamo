@@ -1,11 +1,11 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { TransactionNode } from "../nodes/transactionNode";
+import { WriteTransactionNode } from "../nodes/transactionNode";
 import { QueryCompiler } from "../queryCompiler";
-import { PutItemQueryBuilder } from "./putItemQueryBuilder";
 import { DeleteItemQueryBuilder } from "./deleteItemQueryBuilder";
+import { PutItemQueryBuilder } from "./putItemQueryBuilder";
 import { UpdateItemQueryBuilder } from "./updateItemQueryBuilder";
 
-export interface TransactionBuilderInterface<DDB> {
+export interface WriteTransactionBuilderInterface<DDB> {
   /**
    * TODO: ConditionCheck
    */
@@ -18,12 +18,12 @@ export interface TransactionBuilderInterface<DDB> {
   execute(): Promise<void>;
 }
 
-export class TransactionBuilder<DDB>
-  implements TransactionBuilderInterface<DDB>
+export class WriteTransactionBuilder<DDB>
+  implements WriteTransactionBuilderInterface<DDB>
 {
-  readonly #props: TransactionBuilderProps;
+  readonly #props: WriteTransactionBuilderProps;
 
-  constructor(props: TransactionBuilderProps) {
+  constructor(props: WriteTransactionBuilderProps) {
     this.#props = props;
   }
 
@@ -32,8 +32,8 @@ export class TransactionBuilder<DDB>
     Delete?: DeleteItemQueryBuilder<DDB, any, any>;
     Update?: UpdateItemQueryBuilder<DDB, any, any>;
   }) {
-    this.#props.node.transactItems.push({
-      kind: "TransactItemNode",
+    this.#props.node.transactWriteItems.push({
+      kind: "TransactWriteItemNode",
       Put: item.Put?.node,
       Delete: item.Delete?.node,
       Update: item.Update?.node,
@@ -49,8 +49,8 @@ export class TransactionBuilder<DDB>
   }
 }
 
-interface TransactionBuilderProps {
-  readonly node: TransactionNode;
+interface WriteTransactionBuilderProps {
+  readonly node: WriteTransactionNode;
   readonly ddbClient: DynamoDBDocumentClient;
   readonly queryCompiler: QueryCompiler;
 }

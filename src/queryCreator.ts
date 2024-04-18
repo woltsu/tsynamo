@@ -3,8 +3,8 @@ import { DeleteItemQueryBuilder } from "./queryBuilders/deleteItemQueryBuilder";
 import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
 import { PutItemQueryBuilder } from "./queryBuilders/putItemQueryBuilder";
 import { QueryQueryBuilder } from "./queryBuilders/queryQueryBuilder";
-import { TransactionBuilder } from "./queryBuilders/transactionBuilder";
 import { UpdateItemQueryBuilder } from "./queryBuilders/updateItemQueryBuilder";
+import { WriteTransactionBuilder } from "./queryBuilders/writeTransactionBuilder";
 import { QueryCompiler } from "./queryCompiler";
 
 export class QueryCreator<DDB> {
@@ -155,11 +155,11 @@ export class QueryCreator<DDB> {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/TransactWriteItemsCommand/
    */
-  createTransaction() {
-    return new TransactionBuilder<DDB>({
+  createWriteTransaction() {
+    return new WriteTransactionBuilder<DDB>({
       node: {
-        kind: "TransactionNode",
-        transactItems: [],
+        kind: "WriteTransactionNode",
+        transactWriteItems: [],
       },
       ddbClient: this.#props.ddbClient,
       queryCompiler: this.#props.queryCompiler,

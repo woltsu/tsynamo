@@ -17,7 +17,7 @@ describe("TransactionBuilder", () => {
   });
 
   it("handles transaction with puts", async () => {
-    const trx = tsynamoClient.createTransaction();
+    const trx = tsynamoClient.createWriteTransaction();
 
     trx.addItem({
       Put: tsynamoClient
@@ -72,7 +72,7 @@ describe("TransactionBuilder", () => {
 
     expect(foundItem).toBeDefined();
 
-    const trx = tsynamoClient.createTransaction();
+    const trx = tsynamoClient.createWriteTransaction();
 
     trx.addItem({
       Delete: tsynamoClient.deleteItem("myTable").keys({
@@ -122,7 +122,7 @@ describe("TransactionBuilder", () => {
       .item({ userId: "1", dataTimestamp: 2 })
       .execute();
 
-    const trx = tsynamoClient.createTransaction();
+    const trx = tsynamoClient.createWriteTransaction();
 
     trx.addItem({
       Update: tsynamoClient
