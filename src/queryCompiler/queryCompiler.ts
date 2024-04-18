@@ -1,6 +1,7 @@
 import { TransactWriteItem } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
+  DeleteCommandInput,
   GetCommand,
   PutCommand,
   PutCommandInput,
@@ -180,6 +181,10 @@ export class QueryCompiler {
   }
 
   compileDeleteNode(deleteNode: DeleteNode) {
+    return new DeleteCommand(this.compileDeleteCmdInput(deleteNode));
+  }
+
+  compileDeleteCmdInput(deleteNode: DeleteNode): DeleteCommandInput {
     const {
       table: tableNode,
       returnValues: returnValuesNode,
@@ -198,7 +203,7 @@ export class QueryCompiler {
       attributeNames
     );
 
-    return new DeleteCommand({
+    return {
       TableName: tableNode.table,
       Key: keysNode?.keys,
       ReturnValues: returnValuesNode?.option,
@@ -219,7 +224,7 @@ export class QueryCompiler {
               ...Object.fromEntries(attributeNames),
             }
           : undefined,
-    });
+    };
   }
 
   compileUpdateNode(updateNode: UpdateNode) {
@@ -279,11 +284,11 @@ export class QueryCompiler {
         compiledTransactItem.Put = this.compilePutCmdInput(item.Put);
       }
 
-      return compiledTransactItem;
-    });
+      if (item.Delete) {
+        compiledTransactItem.Delete = this.compileDeleteCmdInput(item.Delete);
+      }
 
-    console.log("WUT", {
-      TransactItems: TransactItems.map((x) => x.Put),
+      return compiledTransactItem;
     });
 
     return new TransactWriteCommand({

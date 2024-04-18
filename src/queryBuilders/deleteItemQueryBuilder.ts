@@ -24,77 +24,77 @@ import {
 export interface DeleteItemQueryBuilderInterface<
   DDB,
   Table extends keyof DDB,
-  O
+  O extends DDB[Table]
 > {
   // conditionExpression
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   // orConditionExpression
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   returnValuesOnConditionCheckFailure(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   compile(): DeleteCommand;
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
@@ -117,7 +117,7 @@ export class DeleteItemQueryBuilder<
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -135,7 +135,7 @@ export class DeleteItemQueryBuilder<
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -153,7 +153,7 @@ export class DeleteItemQueryBuilder<
 
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -168,7 +168,7 @@ export class DeleteItemQueryBuilder<
 
   returnValuesOnConditionCheckFailure(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -199,11 +199,16 @@ export class DeleteItemQueryBuilder<
   compile = (): DeleteCommand => {
     return this.#props.queryCompiler.compile(this.#props.node);
   };
+
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
     const deleteCommand = this.compile();
     const data = await this.#props.ddbClient.send(deleteCommand);
     return data.Attributes as any;
   };
+
+  public get node() {
+    return this.#props.node;
+  }
 }
 
 preventAwait(

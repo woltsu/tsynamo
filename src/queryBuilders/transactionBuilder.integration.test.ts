@@ -40,4 +40,74 @@ describe("TransactionBuilder", () => {
 
     expect(result).toMatchSnapshot();
   });
+
+  it("handles deletes", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({ userId: "9999", dataTimestamp: 1 })
+      .execute();
+
+    await tsynamoClient
+      .putItem("myOtherTable")
+      .item({ userId: "9999", stringTimestamp: "123" })
+      .execute();
+
+    let foundItem: unknown = await tsynamoClient
+      .getItem("myTable")
+      .keys({
+        userId: "9999",
+        dataTimestamp: 1,
+      })
+      .execute();
+
+    expect(foundItem).toBeDefined();
+
+    foundItem = await tsynamoClient
+      .getItem("myOtherTable")
+      .keys({
+        userId: "9999",
+        stringTimestamp: "123",
+      })
+      .execute();
+
+    expect(foundItem).toBeDefined();
+
+    const trx = tsynamoClient.createTransaction();
+
+    trx.addItem({
+      Delete: tsynamoClient.deleteItem("myTable").keys({
+        userId: "9999",
+        dataTimestamp: 1,
+      }),
+    });
+
+    trx.addItem({
+      Delete: tsynamoClient.deleteItem("myOtherTable").keys({
+        userId: "9999",
+        stringTimestamp: "123",
+      }),
+    });
+
+    await trx.execute();
+
+    foundItem = await tsynamoClient
+      .getItem("myTable")
+      .keys({
+        userId: "9999",
+        dataTimestamp: 1,
+      })
+      .execute();
+
+    expect(foundItem).toBeUndefined();
+
+    foundItem = await tsynamoClient
+      .getItem("myOtherTable")
+      .keys({
+        userId: "9999",
+        stringTimestamp: "9999",
+      })
+      .execute();
+
+    expect(foundItem).toBeUndefined();
+  });
 });
