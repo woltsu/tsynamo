@@ -1,16 +1,11 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { DeleteItemQueryBuilder } from "./queryBuilders/deleteItemQueryBuilder";
 import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
-import {
-  PutItemQueryBuilder,
-  PutItemQueryBuilderInterface,
-} from "./queryBuilders/putItemQueryBuilder";
-import {
-  QueryQueryBuilder,
-  QueryQueryBuilderInterface,
-} from "./queryBuilders/queryQueryBuilder";
-import { QueryCompiler } from "./queryCompiler";
+import { PutItemQueryBuilder } from "./queryBuilders/putItemQueryBuilder";
+import { QueryQueryBuilder } from "./queryBuilders/queryQueryBuilder";
+import { TransactionBuilder } from "./queryBuilders/transactionBuilder";
 import { UpdateItemQueryBuilder } from "./queryBuilders/updateItemQueryBuilder";
+import { QueryCompiler } from "./queryCompiler";
 
 export class QueryCreator<DDB> {
   readonly #props: QueryCreatorProps;
@@ -50,7 +45,7 @@ export class QueryCreator<DDB> {
    */
   query<Table extends keyof DDB & string>(
     table: Table
-  ): QueryQueryBuilderInterface<DDB, Table, DDB[Table]> {
+  ): QueryQueryBuilder<DDB, Table, DDB[Table]> {
     return new QueryQueryBuilder<DDB, Table, DDB[Table]>({
       node: {
         kind: "QueryNode",
@@ -77,7 +72,7 @@ export class QueryCreator<DDB> {
    */
   putItem<Table extends keyof DDB & string>(
     table: Table
-  ): PutItemQueryBuilderInterface<DDB, Table, DDB[Table]> {
+  ): PutItemQueryBuilder<DDB, Table, DDB[Table]> {
     return new PutItemQueryBuilder<DDB, Table, DDB[Table]>({
       node: {
         kind: "PutNode",
@@ -146,8 +141,25 @@ export class QueryCreator<DDB> {
           setUpdateExpressions: [],
           removeUpdateExpressions: [],
           addUpdateExpressions: [],
-          deleteUpdateExpressions: []
+          deleteUpdateExpressions: [],
         },
+      },
+      ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
+    });
+  }
+
+  /**
+   * Returns a builder that can be used to group many different operations
+   * together and execute them in a transaction.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/TransactWriteItemsCommand/
+   */
+  createTransaction() {
+    return new TransactionBuilder<DDB>({
+      node: {
+        kind: "TransactionNode",
+        transactItems: [],
       },
       ddbClient: this.#props.ddbClient,
       queryCompiler: this.#props.queryCompiler,

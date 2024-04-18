@@ -16,52 +16,56 @@ import {
   NotExprArg,
 } from "./expressionBuilder";
 
-export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
+export interface PutItemQueryBuilderInterface<
+  DDB,
+  Table extends keyof DDB,
+  O extends DDB[Table]
+> {
   // conditionExpression
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   // orConditionExpression
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
@@ -69,19 +73,19 @@ export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   item<Item extends ExecuteOutput<O>>(
     item: Item
-  ): PutItemQueryBuilderInterface<DDB, Table, O>;
+  ): PutItemQueryBuilder<DDB, Table, O>;
 
   compile(): PutCommand;
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
@@ -101,7 +105,7 @@ export class PutItemQueryBuilder<
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
+  ): PutItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -119,7 +123,7 @@ export class PutItemQueryBuilder<
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
+  ): PutItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -137,7 +141,7 @@ export class PutItemQueryBuilder<
 
   item<Item extends ExecuteOutput<O>>(
     item: Item
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
+  ): PutItemQueryBuilder<DDB, Table, O> {
     return new PutItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -152,7 +156,7 @@ export class PutItemQueryBuilder<
 
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilderInterface<DDB, Table, O> {
+  ): PutItemQueryBuilder<DDB, Table, O> {
     return new PutItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -168,11 +172,16 @@ export class PutItemQueryBuilder<
   compile = (): PutCommand => {
     return this.#props.queryCompiler.compile(this.#props.node);
   };
+
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
     const putCommand = this.compile();
     const data = await this.#props.ddbClient.send(putCommand);
     return data.Attributes as any;
   };
+
+  public get node() {
+    return this.#props.node;
+  }
 }
 
 preventAwait(

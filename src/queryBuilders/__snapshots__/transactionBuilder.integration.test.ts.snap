@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TransactionBuilder > handles puts 1`] = `
+[
+  {
+    "dataTimestamp": 1,
+    "userId": "9999",
+  },
+  {
+    "dataTimestamp": 2,
+    "userId": "9999",
+  },
+]
+`;
