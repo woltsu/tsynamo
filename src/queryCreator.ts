@@ -150,8 +150,8 @@ export class QueryCreator<DDB> {
   }
 
   /**
-   * Returns a builder that can be used to group many different operations
-   * together and execute them in a transaction.
+   * Returns a builder that can be used to group many different write
+   * operations together and execute them in a transaction.
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/TransactWriteItemsCommand/
    */
