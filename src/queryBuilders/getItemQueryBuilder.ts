@@ -13,19 +13,19 @@ import { preventAwait } from "../util/preventAwait";
 export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
-  ): GetQueryBuilderInterface<DDB, Table, O>;
+  ): GetQueryBuilder<DDB, Table, O>;
 
-  consistentRead(enabled: boolean): GetQueryBuilderInterface<DDB, Table, O>;
+  consistentRead(enabled: boolean): GetQueryBuilder<DDB, Table, O>;
 
   attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
-  ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
+  ): GetQueryBuilder<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
   compile(): GetCommand;
   execute(): Promise<ExecuteOutput<O> | undefined>;
 }
 
-export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
+export class GetQueryBuilder<DDB, Table extends keyof DDB, O>
   implements GetQueryBuilderInterface<DDB, Table, O>
 {
   readonly #props: GetQueryBuilderProps;
@@ -36,7 +36,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
 
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     keys: Keys
-  ) {
+  ): GetQueryBuilder<DDB, Table, O> {
     return new GetQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -49,7 +49,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     });
   }
 
-  consistentRead(enabled: boolean): GetQueryBuilderInterface<DDB, Table, O> {
+  consistentRead(enabled: boolean): GetQueryBuilder<DDB, Table, O> {
     return new GetQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -64,7 +64,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
 
   attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
-  ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>> {
+  ): GetQueryBuilder<DDB, Table, SelectAttributes<DDB[Table], A>> {
     return new GetQueryBuilder({
       ...this.#props,
       node: {
@@ -80,11 +80,16 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
   compile(): GetCommand {
     return this.#props.queryCompiler.compile(this.#props.node);
   }
+
   execute = async (): Promise<ExecuteOutput<O> | undefined> => {
     const command = this.compile();
     const item = await this.#props.ddbClient.send(command);
     return (item.Item as ExecuteOutput<O>) ?? undefined;
   };
+
+  public get node() {
+    return this.#props.node;
+  }
 }
 
 preventAwait(

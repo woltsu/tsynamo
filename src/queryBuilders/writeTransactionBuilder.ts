@@ -1,5 +1,5 @@
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { WriteTransactionNode } from "../nodes/transactionNode";
+import { WriteTransactionNode } from "../nodes/writeTransactionNode";
 import { QueryCompiler } from "../queryCompiler";
 import { DeleteItemQueryBuilder } from "./deleteItemQueryBuilder";
 import { PutItemQueryBuilder } from "./putItemQueryBuilder";

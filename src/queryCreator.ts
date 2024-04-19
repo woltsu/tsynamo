@@ -3,6 +3,7 @@ import { DeleteItemQueryBuilder } from "./queryBuilders/deleteItemQueryBuilder";
 import { GetQueryBuilder } from "./queryBuilders/getItemQueryBuilder";
 import { PutItemQueryBuilder } from "./queryBuilders/putItemQueryBuilder";
 import { QueryQueryBuilder } from "./queryBuilders/queryQueryBuilder";
+import { ReadTransactionBuilder } from "./queryBuilders/readTransactionBuilder";
 import { UpdateItemQueryBuilder } from "./queryBuilders/updateItemQueryBuilder";
 import { WriteTransactionBuilder } from "./queryBuilders/writeTransactionBuilder";
 import { QueryCompiler } from "./queryCompiler";
@@ -160,6 +161,23 @@ export class QueryCreator<DDB> {
       node: {
         kind: "WriteTransactionNode",
         transactWriteItems: [],
+      },
+      ddbClient: this.#props.ddbClient,
+      queryCompiler: this.#props.queryCompiler,
+    });
+  }
+
+  /**
+   * Returns a builder that can be used to group many different get
+   * operations together and execute them in a transaction.
+   *
+   * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/TransactGetItemsCommand/
+   */
+  createReadTransaction() {
+    return new ReadTransactionBuilder<DDB>({
+      node: {
+        kind: "ReadTransactionNode",
+        transactGetItems: [],
       },
       ddbClient: this.#props.ddbClient,
       queryCompiler: this.#props.queryCompiler,

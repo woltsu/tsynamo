@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`TransactionBuilder > handles transaction with puts 1`] = `
+exports[`WriteTransactionBuilder > handles transaction with puts 1`] = `
 [
   {
     "dataTimestamp": 1,
@@ -13,7 +13,7 @@ exports[`TransactionBuilder > handles transaction with puts 1`] = `
 ]
 `;
 
-exports[`TransactionBuilder > handles transaction with updates 1`] = `
+exports[`WriteTransactionBuilder > handles transaction with updates 1`] = `
 [
   {
     "dataTimestamp": 1,

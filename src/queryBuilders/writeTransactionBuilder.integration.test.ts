@@ -3,7 +3,7 @@ import { DDB } from "../../test/testFixture";
 import { getDDBClientFor, startDDBTestContainer } from "../../test/testUtil";
 import { Tsynamo } from "../index";
 
-describe("TransactionBuilder", () => {
+describe("WriteTransactionBuilder", () => {
   let tsynamoClient: Tsynamo<DDB>;
   let ddbClient: DynamoDBDocumentClient;
 

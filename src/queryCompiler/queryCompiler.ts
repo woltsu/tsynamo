@@ -1,11 +1,17 @@
-import { TransactWriteItem, Update } from "@aws-sdk/client-dynamodb";
+import {
+  TransactGetItem,
+  TransactWriteItem,
+  Update,
+} from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
   DeleteCommandInput,
   GetCommand,
+  GetCommandInput,
   PutCommand,
   PutCommandInput,
   QueryCommand,
+  TransactGetCommand,
   TransactWriteCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
@@ -19,12 +25,13 @@ import { GetNode } from "../nodes/getNode";
 import { KeyConditionNode } from "../nodes/keyConditionNode";
 import { PutNode } from "../nodes/putNode";
 import { QueryNode } from "../nodes/queryNode";
+import { ReadTransactionNode } from "../nodes/readTransactionNode";
 import { RemoveUpdateExpression } from "../nodes/removeUpdateExpression";
 import { SetUpdateExpression } from "../nodes/setUpdateExpression";
 import { SetUpdateExpressionFunction } from "../nodes/setUpdateExpressionFunction";
-import { WriteTransactionNode } from "../nodes/transactionNode";
 import { UpdateExpression } from "../nodes/updateExpression";
 import { UpdateNode } from "../nodes/updateNode";
+import { WriteTransactionNode } from "../nodes/writeTransactionNode";
 import {
   getAttributeNameFrom,
   getExpressionAttributeNameFrom,
@@ -38,6 +45,7 @@ export class QueryCompiler {
   compile(rootNode: DeleteNode): DeleteCommand;
   compile(rootNode: UpdateNode): UpdateCommand;
   compile(rootNode: WriteTransactionNode): TransactWriteCommand;
+  compile(rootNode: ReadTransactionNode): TransactGetCommand;
   compile(
     rootNode:
       | QueryNode
@@ -46,6 +54,7 @@ export class QueryCompiler {
       | DeleteNode
       | UpdateNode
       | WriteTransactionNode
+      | ReadTransactionNode
   ) {
     switch (rootNode.kind) {
       case "GetNode":
@@ -59,11 +68,17 @@ export class QueryCompiler {
       case "UpdateNode":
         return this.compileUpdateNode(rootNode);
       case "WriteTransactionNode":
-        return this.compileTransactionNode(rootNode);
+        return this.compileWriteTransactionNode(rootNode);
+      case "ReadTransactionNode":
+        return this.compileReadTransactionNode(rootNode);
     }
   }
 
   compileGetNode(getNode: GetNode): GetCommand {
+    return new GetCommand(this.compileGetCmdInput(getNode));
+  }
+
+  compileGetCmdInput(getNode: GetNode): GetCommandInput {
     const {
       table: tableNode,
       keys: keysNode,
@@ -74,13 +89,13 @@ export class QueryCompiler {
     const { ProjectionExpression, ExpressionAttributeNames } =
       this.compileAttributeNamesNode(attributesNode);
 
-    return new GetCommand({
+    return {
       TableName: tableNode.table,
       Key: keysNode?.keys,
       ConsistentRead: consistentReadNode?.enabled,
       ProjectionExpression,
       ExpressionAttributeNames,
-    });
+    };
   }
 
   compileQueryNode(queryNode: QueryNode): QueryCommand {
@@ -280,7 +295,7 @@ export class QueryCompiler {
     };
   }
 
-  compileTransactionNode(transactionNode: WriteTransactionNode) {
+  compileWriteTransactionNode(transactionNode: WriteTransactionNode) {
     const TransactItems = transactionNode.transactWriteItems.map((item) => {
       const compiledTransactItem: TransactWriteItem = {};
 
@@ -302,6 +317,22 @@ export class QueryCompiler {
     });
 
     return new TransactWriteCommand({
+      TransactItems: TransactItems,
+    });
+  }
+
+  compileReadTransactionNode(transactionNode: ReadTransactionNode) {
+    const TransactItems = transactionNode.transactGetItems.map((item) => {
+      const compiledGet = this.compileGetCmdInput(item.Get);
+
+      const compiledTransactItem: TransactGetItem = {
+        Get: compiledGet,
+      };
+
+      return compiledTransactItem;
+    });
+
+    return new TransactGetCommand({
       TransactItems: TransactItems,
     });
   }
