@@ -24,7 +24,25 @@ export interface ExpressionBuilderInterface<
   O,
   AllowKeys = false
 > {
-  // expression
+  /**
+   *
+   * Expression builder for {@link conditionExpression} or {@link orConditionExpression}.
+   *
+   * Example
+   *
+   * ```ts
+   * tsynamoClient
+   *   .deleteItem("myTable")
+   *   .keys({
+   *      userId: "1",
+   *      dataTimestamp: 2,
+   *    })
+   *   .conditionExpression("NOT", (qb) => {
+   *      return qb.expression("tags", "contains", "meow");
+   *    })
+   *   .execute()
+   * ```
+   */
   expression<
     Key extends ObjectKeyPaths<
       AllowKeys extends true ? DDB[Table] : PickNonKeys<DDB[Table]>

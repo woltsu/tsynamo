@@ -17,7 +17,25 @@ import {
 } from "./expressionBuilder";
 
 export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
-  // conditionExpression
+  /**
+   * A condition that must be satisfied in order for a PutItem operation to be executed.
+   *
+   * Multiple FilterExpressions are added as `AND` statements. see {@link orConditionExpression} for `OR` statements.
+   *
+   * Example
+   *
+   * ```ts
+   * await tsynamoClient
+   *   .putItem("myTable")
+   *   .item({
+   *     userId: "333",
+   *     dataTimestamp: 222,
+   *     someBoolean: true,
+   *    })
+   *   .conditionExpression("userId", "attribute_not_exists")
+   *   .execute()
+   * ```
+   */
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
@@ -46,7 +64,25 @@ export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     ...args: BuilderExprArg<DDB, Table, Key>
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
-  // orConditionExpression
+  /**
+   * A {@link conditionExpression} that is concatenated as an OR statement.
+   *
+   * A condition that must be satisfied in order for a PutItem operation to be executed.
+   *
+   * Example
+   *
+   * ```ts
+   * await tsynamoClient
+   *   .putItem("myTable")
+   *   .item({
+   *     userId: "333",
+   *     dataTimestamp: 222,
+   *     someBoolean: true,
+   *    })
+   *   .conditionExpression("userId", "attribute_not_exists")
+   *   .execute()
+   * ```
+   */
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
@@ -75,15 +111,57 @@ export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     ...args: BuilderExprArg<DDB, Table, Key>
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
+  // TODO: returnValues should probably just be `returnValues()` without any parameters as ALL_OLD is the only value it takes.
+
+  /**
+   *
+   * Use this if you want to get the item attributes as they appeared before they were updated with the PutItem request.
+   *
+   * The valid values are:
+   *
+   *  - NONE - If returnValues is not specified, or if its value is NONE, then nothing is returned. (This setting is the default.)
+   *
+   *  - ALL_OLD - If PutItem overwrote an attribute name-value pair, then the content of the old item is returned.
+   *
+   * The values returned are strongly consistent.
+   */
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   * The item that is put into the table.
+   *
+   * Only the primary key attributes are required; you can optionally provide other attribute name-value pairs for the item.
+   *
+   * You must provide all of the attributes for the primary key. For example, with a simple primary key, you only need to provide a value for the partition key. For a composite primary key, you must provide values for both the partition key and the sort key.
+   *
+   * If you specify any attributes that are part of an index key, then the data types for those attributes must match those of the schema in the table's attribute definition.
+   *
+   * Example
+   *
+   * ```ts
+   * await tsynamoClient
+   *   .putItem("myTable")
+   *   .item({
+   *     userId: "333",
+   *     dataTimestamp: 222,
+   *     someBoolean: true,
+   *    })
+   *   .execute()
+   * ```
+   */
   item<Item extends ExecuteOutput<O>>(
     item: Item
   ): PutItemQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   * Compiles into an DynamoDB DocumentClient Command.
+   */
   compile(): PutCommand;
+  /**
+   * Executes the command and returns its output.
+   */
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 

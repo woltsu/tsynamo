@@ -30,7 +30,26 @@ import {
 } from "./expressionBuilder";
 
 export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
-  // filterExpression
+  /**
+   * Conditions that DynamoDB applies after the Query operation, but before the data is returned to you.
+   *
+   * Items that do not satisfy the FilterExpression criteria are not returned.
+   *
+   * A FilterExpression does not allow key attributes. You cannot define a filter expression based on a partition key or a sort key.
+   *
+   * A FilterExpression is applied after the items have already been read; the process of filtering does not change consumed read capacity units.
+   *
+   * Multiple FilterExpressions are added as `AND` statements. see {@link orFilterExpression} for `OR` statements.
+   *
+   * Example
+   * ```ts
+   * await tsynamoClient
+   *  .query("myTable")
+   *  .keyCondition("userId", "=", "123")
+   *  .filterExpression("someBoolean", "=", true)
+   *  .execute();
+   * ```
+   */
   filterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
@@ -59,8 +78,27 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     ...args: BuilderExprArg<DDB, Table, Key, false>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
-  // orFilterExpression
-  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+  /**
+   * A {@link filterExpression} that is concatenated as an OR statement.
+   *
+   * Conditions that DynamoDB applies after the Query operation, but before the data is returned to you.
+   *
+   * Items that do not satisfy the FilterExpression criteria are not returned.
+   *
+   * A FilterExpression does not allow key attributes. You cannot define a filter expression based on a partition key or a sort key.
+   *
+   * A FilterExpression is applied after the items have already been read; the process of filtering does not change consumed read capacity units.
+   *
+   * Example
+   * ```ts
+   * await tsynamoClient
+   *  .query("myTable")
+   *  .keyCondition("userId", "=", "123")
+   *  .filterExpression("someBoolean", "=", true)
+   *  .orFilterExpression("somethingElse", "BETWEEN", 9, 10)
+   *  .execute();
+   * ```
+   */ orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
@@ -89,7 +127,23 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
   /**
-   * keyCondition methods
+   * The condition that specifies the key values for items to be retrieved by the Query action.
+   *
+   * The condition must perform an equality test on a single partition key value.
+   *
+   * The condition can optionally perform one of several comparison tests on a single sort key value. This allows Query to retrieve one item with a given partition key value and sort key value, or several items that have the same partition key value but different sort key values.
+   *
+   * The partition key equality test is required.
+   *
+   * Example
+   *
+   * ```ts
+   * await tsynamoClient
+   *   .query("myTable")
+   *   .keyCondition("userId", "=", "123")
+   *   .keyCondition("dataTimestamp", "BETWEEN", 150, 500)
+   *   .execute();
+   * ```
    */
   keyCondition<Key extends keyof PickAllKeys<DDB[Table]> & string>(
     key: Key,
@@ -112,17 +166,57 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     val: StripKeys<DDB[Table][Key]>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   * The maximum number of items to evaluate (not necessarily the number of matching items).
+   * If DynamoDB processes the number of items up to the limit while processing the results, it stops the operation and returns the matching values up to that point.
+   */
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   *
+   * Specifies the order for index traversal: If true (default), the traversal is performed in ascending order; if false, the traversal is performed in descending order.
+   */
   scanIndexForward(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
-
+  /**
+   * Determines the read consistency model: If set to true, then the operation uses strongly consistent reads; otherwise, the operation uses eventually consistent reads.
+   *
+   * set this to true, if you must have up-to-date data.
+   *
+   * Example
+   *
+   * ```ts
+   * await tsynamoClient
+   *  .query("myTable")
+   *  .keyCondition("userId", "=", "123")
+   *  .consistentRead(true)
+   *  .execute()
+   * ```
+   */
   consistentRead(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  /**
+   * List of attributes to get from the table.
+   *
+   * Example
+   *
+   * ```ts
+   * await tsynamoClient
+   *  .query("myTable")
+   *  .keyCondition("userId", "=", "123")
+   *  .attributes(["someBoolean", "nested.nestedBoolean", "cats[1].age"])
+   *  .execute()
+   * ```
+   */
   attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
   ): QueryQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
-
+  /**
+   * Compiles into an DynamoDB DocumentClient Command.
+   */
   compile(): QueryCommand;
+  /**
+   * Executes the command and returns its output.
+   */
   execute(): Promise<ExecuteOutput<O>[] | undefined>;
 }
 
