@@ -346,8 +346,8 @@ const result = await trx.execute();
 Then, one can loop through the result items as so:
 
 ```ts
+// note that item can be undefined
 result.forEach(([table, item]) => {
-  // note that item can be undefined
   if (table === "myTable") {
     // item's type is DDB["myTable"]
     // ...
