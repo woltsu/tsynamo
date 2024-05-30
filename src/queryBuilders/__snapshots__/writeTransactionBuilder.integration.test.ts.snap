@@ -1,5 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`WriteTransactionBuilder > handles transaction with failing conditions 1`] = `[TransactionCanceledException: Transaction cancelled, please refer cancellation reasons for specific reasons [ConditionalCheckFailed]]`;
+
 exports[`WriteTransactionBuilder > handles transaction with puts 1`] = `
 [
   {

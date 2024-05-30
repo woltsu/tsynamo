@@ -147,4 +147,27 @@ describe("WriteTransactionBuilder", () => {
 
     expect(result).toMatchSnapshot();
   });
+
+  it("handles transaction with failing conditions", async () => {
+    // Create a conflicting entry
+    await tsynamoClient
+      .putItem("myTable")
+      .item({ userId: "1", dataTimestamp: 2 })
+      .execute();
+
+    const trx = tsynamoClient.createWriteTransaction();
+
+    trx.addItem({
+      Put: tsynamoClient
+        .putItem("myTable")
+        .item({
+          userId: "1",
+          dataTimestamp: 2,
+          someBoolean: true,
+        })
+        .conditionExpression("userId", "attribute_not_exists"),
+    });
+
+    expect(trx.execute()).rejects.toMatchSnapshot();
+  });
 });

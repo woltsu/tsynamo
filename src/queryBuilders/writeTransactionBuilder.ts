@@ -7,7 +7,7 @@ import { UpdateItemQueryBuilder } from "./updateItemQueryBuilder";
 
 export interface WriteTransactionBuilderInterface<DDB> {
   /**
-   * TODO: ConditionCheck
+   * @todo add support for ConditionCheck items
    */
   addItem(item: {
     Put?: PutItemQueryBuilder<DDB, any, any>;
