@@ -26,7 +26,24 @@ describe("ReadTransactionBuilder", () => {
       }),
     });
 
+    trx.addItem({
+      Get: tsynamoClient
+        .getItem("myOtherTable")
+        .keys({
+          userId: "123",
+          stringTimestamp: "111",
+        })
+        .attributes(["userId"]),
+    });
+
+    trx.addItem({
+      Get: tsynamoClient.getItem("myTable").keys({
+        userId: "1111111",
+        dataTimestamp: 2222,
+      }),
+    });
+
     const result = await trx.execute();
-    console.log("result", result);
+    expect(result).toMatchSnapshot();
   });
 });
