@@ -14,7 +14,7 @@ export interface ReadTransactionBuilderInterface<DDB> {
   execute(): Promise<unknown[]>;
 }
 
-export class ReadTransactionBuilder<DDB, X>
+export class ReadTransactionBuilder<DDB>
   implements ReadTransactionBuilderInterface<DDB>
 {
   readonly #props: ReadTransactionBuilderProps;
