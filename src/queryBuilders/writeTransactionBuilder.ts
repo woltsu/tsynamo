@@ -15,6 +15,10 @@ export interface WriteTransactionBuilderInterface<DDB> {
     Update?: UpdateItemQueryBuilder<DDB, any, any>;
   }): void;
 
+  /**
+   * @todo add support for ClientRequestToken
+   */
+
   execute(): Promise<void>;
 }
 

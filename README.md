@@ -33,8 +33,8 @@ Tsynamo simplifies the DynamoDB API so that you don't have to write commands wit
   - [Put item](#put-item)
   - [Delete item](#delete-item)
   - [Update item](#update-item)
+  - [Transactions](#transactions)
 - [Contributors](#contributors)
-
 
 ## Requirements
 
@@ -72,6 +72,7 @@ export interface DDB {
   };
 }
 ```
+
 > [!TIP]
 > Notice that you can have multiple tables in the DDB schema. Nested attributes are supported too.
 
@@ -196,6 +197,7 @@ await tsynamoClient
   .execute();
 ```
 
+> [!NOTE]
 > This would compile as the following FilterExpression:
 > `NOT eventType = "LOG_IN"`, i.e. return all events whose types is not "LOG_IN"
 
@@ -280,6 +282,80 @@ await tsynamoClient
   .delete("nested.nestedSet", new Set(["4", "5"]))
   .conditionExpression("somethingElse", ">", 0)
   .execute();
+```
+
+### Transactions
+
+One can also utilise [DynamoDB Transaction](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html) features using Tsynamo. You can perform operations to multiple tables in a single transaction command.
+
+#### Write transaction
+
+```ts
+const trx = tsynamoClient.createWriteTransaction();
+
+trx.addItem({
+  Put: tsynamoClient
+    .putItem("myTable")
+    .item({ userId: "313", dataTimestamp: 1 }),
+});
+
+trx.addItem({
+  Update: tsynamoClient
+    .updateItem("myTable")
+    .keys({ userId: "313", dataTimestamp: 2 })
+    .set("tags", "=", ["a", "b", "c"]),
+});
+
+trx.addItem({
+  Delete: tsynamoClient.deleteItem("myTable").keys({
+    userId: "313",
+    dataTimestamp: 3,
+  }),
+});
+
+await trx.execute();
+```
+
+> [!IMPORTANT]
+> When passing the items into the transaction using the tsynamoClient, do not execute the individual calls! Instead just pass in the query builder as the item.
+
+#### Read transaction
+
+Since the read transaction output can affect multiple tables, the resulting output is an array of tuples where the first item is the name of the table and the second item is the item itself (or `undefined` if the item was not found). This can be used as a discriminated union to determine the resulting item's type.
+
+```ts
+const trx = tsynamoClient.createReadTransaction();
+
+trx.addItem({
+  Get: tsynamoClient.getItem("myTable").keys({
+    userId: "123",
+    dataTimestamp: 222,
+  }),
+});
+
+trx.addItem({
+  Get: tsynamoClient.getItem("myOtherTable").keys({
+    userId: "321",
+    stringTimestamp: "222",
+  }),
+});
+
+const result = await trx.execute();
+```
+
+Then, one can loop through the result items as so:
+
+```ts
+result.forEach(([table, item]) => {
+  // note that item can be undefined
+  if (table === "myTable") {
+    // item's type is DDB["myTable"]
+    // ...
+  } else if (table === "myOtherTable") {
+    // item's type is DDB["myOtherTable"]
+    // ...
+  }
+});
 ```
 
 ## Contributors
