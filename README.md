@@ -351,7 +351,7 @@ const result = await trx.execute();
 Then, one can loop through the result items as so:
 
 ```ts
-// note that item can be undefined
+// note that the items can be undefined if they were not found from DynamoDB
 result.forEach(([table, item]) => {
   if (table === "myTable") {
     // item's type is DDB["myTable"]
