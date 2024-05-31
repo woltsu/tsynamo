@@ -5,7 +5,7 @@ import { GenericContainer, StartedTestContainer } from "testcontainers";
 const DDB_PORT = 8000 as const;
 
 export const startDDBTestContainer = async () => {
-  return new GenericContainer("amazon/dynamodb-local")
+  return new GenericContainer("amazon/dynamodb-local:2.5.0")
     .withReuse()
     .withExposedPorts(DDB_PORT)
     .start();

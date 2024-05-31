@@ -1,8 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`WriteTransactionBuilder > handles transaction with failing conditions 1`] = `[TransactionCanceledException: Transaction cancelled, please refer cancellation reasons for specific reasons [ConditionalCheckFailed]]`;
+exports[`WriteTransactionBuilder > handles a transaction with a client request token 1`] = `[IdempotentParameterMismatchException: UnknownError]`;
 
-exports[`WriteTransactionBuilder > handles transaction with puts 1`] = `
+exports[`WriteTransactionBuilder > handles a transaction with failing conditions 1`] = `[TransactionCanceledException: Transaction cancelled, please refer cancellation reasons for specific reasons [ConditionalCheckFailed]]`;
+
+exports[`WriteTransactionBuilder > handles a transaction with puts 1`] = `
 [
   {
     "dataTimestamp": 1,
@@ -15,7 +17,7 @@ exports[`WriteTransactionBuilder > handles transaction with puts 1`] = `
 ]
 `;
 
-exports[`WriteTransactionBuilder > handles transaction with updates 1`] = `
+exports[`WriteTransactionBuilder > handles a transaction with updates 1`] = `
 [
   {
     "dataTimestamp": 1,

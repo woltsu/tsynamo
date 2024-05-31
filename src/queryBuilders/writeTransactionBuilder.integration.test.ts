@@ -16,7 +16,7 @@ describe("WriteTransactionBuilder", () => {
     });
   });
 
-  it("handles transaction with puts", async () => {
+  it("handles a transaction with puts", async () => {
     const trx = tsynamoClient.createWriteTransaction();
 
     trx.addItem({
@@ -41,7 +41,7 @@ describe("WriteTransactionBuilder", () => {
     expect(result).toMatchSnapshot();
   });
 
-  it("handles transaction with deletes", async () => {
+  it("handles a transaction with deletes", async () => {
     await tsynamoClient
       .putItem("myTable")
       .item({ userId: "9999", dataTimestamp: 1 })
@@ -111,7 +111,7 @@ describe("WriteTransactionBuilder", () => {
     expect(foundItem).toBeUndefined();
   });
 
-  it("handles transaction with updates", async () => {
+  it("handles a transaction with updates", async () => {
     await tsynamoClient
       .putItem("myTable")
       .item({ userId: "1", dataTimestamp: 1 })
@@ -148,7 +148,7 @@ describe("WriteTransactionBuilder", () => {
     expect(result).toMatchSnapshot();
   });
 
-  it("handles transaction with failing conditions", async () => {
+  it("handles a transaction with failing conditions", async () => {
     // Create a conflicting entry
     await tsynamoClient
       .putItem("myTable")
@@ -166,6 +166,29 @@ describe("WriteTransactionBuilder", () => {
           someBoolean: true,
         })
         .conditionExpression("userId", "attribute_not_exists"),
+    });
+
+    expect(trx.execute()).rejects.toMatchSnapshot();
+  });
+
+  it("handles a transaction with a client request token", async () => {
+    const trx = tsynamoClient.createWriteTransaction("hello token");
+
+    trx.addItem({
+      Put: tsynamoClient.putItem("myTable").item({
+        userId: "1",
+        dataTimestamp: 2,
+      }),
+    });
+
+    await trx.execute();
+
+    trx.addItem({
+      Put: tsynamoClient.putItem("myTable").item({
+        userId: "1",
+        dataTimestamp: 2,
+        someBoolean: true,
+      }),
     });
 
     expect(trx.execute()).rejects.toMatchSnapshot();

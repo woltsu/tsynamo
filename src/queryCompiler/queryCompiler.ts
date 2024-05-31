@@ -318,6 +318,7 @@ export class QueryCompiler {
 
     return new TransactWriteCommand({
       TransactItems: TransactItems,
+      ClientRequestToken: transactionNode.clientRequestToken,
     });
   }
 
