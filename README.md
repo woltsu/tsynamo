@@ -290,6 +290,8 @@ One can also utilise [DynamoDB Transaction](https://docs.aws.amazon.com/amazondy
 
 #### Write transaction
 
+DynamoDB enables you to do multiple `Put`, `Update` and `Delete` in a single `WriteTransaction` command. One can also provide an optional `ClientRequestToken` to the transaction to ensure idempotency.
+
 ```ts
 const trx = tsynamoClient.createWriteTransaction();
 
@@ -318,6 +320,9 @@ await trx.execute();
 
 > [!IMPORTANT]
 > When passing the items into the transaction using the tsynamoClient, do not execute the individual calls! Instead just pass in the query builder as the item.
+
+> [!WARNING]  
+> DynamoDB also supports doing `ConditionCheck` operations in the transaction, but Tsynamo does not yet support those.
 
 #### Read transaction
 
