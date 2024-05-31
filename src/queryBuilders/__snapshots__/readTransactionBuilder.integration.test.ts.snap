@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ReadTransactionBuilder > handles transaction with gets 1`] = `
+[
+  [
+    "myTable",
+    {
+      "dataTimestamp": 222,
+      "someBoolean": true,
+      "somethingElse": 2,
+      "userId": "123",
+    },
+  ],
+  [
+    "myOtherTable",
+    {
+      "userId": "123",
+    },
+  ],
+  [
+    "myTable",
+    undefined,
+  ],
+]
+`;

@@ -247,3 +247,20 @@ export type ObjectFullPaths<T> =
         never
     : // Leaf value reached, don't return anything
       never;
+
+/**
+ * Creates a tuple where the first item is the name of the table
+ * and the second item is the schema of the table.
+ */
+type DependentTuple<DDB, Table extends keyof DDB> = [
+  Table,
+  ExecuteOutput<DDB[Table]> | undefined
+];
+
+/**
+ * Generates a type that can be used for discriminated union
+ * when returning data from multiple different tables.
+ */
+export type AllTuples<DDB> = {
+  [Table in keyof DDB]: DependentTuple<DDB, Table>;
+}[keyof DDB];
