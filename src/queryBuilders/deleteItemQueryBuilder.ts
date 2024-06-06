@@ -84,13 +84,21 @@ export interface DeleteItemQueryBuilderInterface<
     ...args: BuilderExprArg<DDB, Table, Key>
   ): DeleteItemQueryBuilder<DDB, Table, O>;
 
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, ExecuteOutput<DDB[Table]>>;
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  >;
 
-  returnValuesOnConditionCheckFailure(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, ExecuteOutput<DDB[Table]>>;
+  returnValuesOnConditionCheckFailure<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  >;
 
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
@@ -148,9 +156,13 @@ export class DeleteItemQueryBuilder<DDB, Table extends keyof DDB, O>
     });
   }
 
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, ExecuteOutput<DDB[Table]>> {
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  > {
     return new DeleteItemQueryBuilder({
       ...this.#props,
       node: {
@@ -163,9 +175,13 @@ export class DeleteItemQueryBuilder<DDB, Table extends keyof DDB, O>
     });
   }
 
-  returnValuesOnConditionCheckFailure(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, ExecuteOutput<DDB[Table]>> {
+  returnValuesOnConditionCheckFailure<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  > {
     return new DeleteItemQueryBuilder({
       ...this.#props,
       node: {

@@ -75,9 +75,13 @@ export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
     ...args: BuilderExprArg<DDB, Table, Key>
   ): PutItemQueryBuilder<DDB, Table, O>;
 
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilder<DDB, Table, ExecuteOutput<DDB[Table]>>;
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): PutItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  >;
 
   item<Item extends ExecuteOutput<DDB[Table]>>(
     item: Item
@@ -147,9 +151,13 @@ export class PutItemQueryBuilder<DDB, Table extends keyof DDB, O>
     });
   }
 
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilder<DDB, Table, ExecuteOutput<DDB[Table]>> {
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): PutItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  > {
     return new PutItemQueryBuilder({
       ...this.#props,
       node: {
