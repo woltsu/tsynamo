@@ -71,10 +71,10 @@ export class QueryCreator<DDB> {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/PutItemCommand/
    */
-  putItem<Table extends keyof DDB & string>(
+  putItem<Table extends keyof DDB & string, O>(
     table: Table
-  ): PutItemQueryBuilder<DDB, Table, DDB[Table]> {
-    return new PutItemQueryBuilder<DDB, Table, DDB[Table]>({
+  ): PutItemQueryBuilder<DDB, Table, O> {
+    return new PutItemQueryBuilder({
       node: {
         kind: "PutNode",
         table: {
@@ -97,10 +97,10 @@ export class QueryCreator<DDB> {
    *
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/dynamodb/command/DeleteItemCommand/
    */
-  deleteItem<Table extends keyof DDB & string>(
+  deleteItem<Table extends keyof DDB & string, O>(
     table: Table
-  ): DeleteItemQueryBuilder<DDB, Table, DDB[Table]> {
-    return new DeleteItemQueryBuilder<DDB, Table, DDB[Table]>({
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
+    return new DeleteItemQueryBuilder({
       node: {
         kind: "DeleteNode",
         table: {

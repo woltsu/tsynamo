@@ -210,11 +210,8 @@ export type ExprArgs<
   | AttributeBetweenExprArg<DDB, Table, Key>
   | BuilderExprArg<DDB, Table, O, AllowKeysInExpression>
   | NotExprArg<DDB, Table, O, AllowKeysInExpression>;
-export class ExpressionBuilder<
-  DDB,
-  Table extends keyof DDB,
-  O extends DDB[Table]
-> implements ExpressionBuilderInterface<DDB, Table, O>
+export class ExpressionBuilder<DDB, Table extends keyof DDB, O>
+  implements ExpressionBuilderInterface<DDB, Table, O>
 {
   readonly #props: ExpressionBuilderProps;
 
