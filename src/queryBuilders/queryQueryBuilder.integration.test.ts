@@ -188,4 +188,34 @@ describe("QueryQueryBuilder", () => {
 
     expect(data).toMatchSnapshot();
   });
+
+  it("handles a query with limit", async () => {
+    const data = await tsynamoClient
+      .query("myTable")
+      .keyCondition("userId", "=", "123")
+      .limit(2)
+      .execute();
+
+    expect(data).toHaveLength(2);
+    expect(data).toMatchSnapshot();
+  })
+
+  it("handles a query with index", async () => {
+    const data = await tsynamoClient
+      .query("myTable")
+      .keyCondition("userId", "=", "123")
+      .index("myIndex")
+      .execute();
+
+    expect(data).toMatchSnapshot();
+  })
+
+  it("fails a query with non-existent index", async () => {
+    await expect(tsynamoClient
+      .query("myTable")
+      .keyCondition("userId", "=", "123")
+      .index("nonExistentIndex")
+      .execute()
+    ).rejects.toThrowErrorMatchingSnapshot();
+  })
 });

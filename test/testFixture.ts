@@ -71,6 +71,17 @@ export const setupTestDDB = async (client: DynamoDBDocumentClient) => {
         },
       ],
       BillingMode: "PAY_PER_REQUEST",
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "myIndex",
+          KeySchema: [
+            { AttributeName: "userId", KeyType: "HASH" },
+          ],
+          Projection: {
+            ProjectionType: "ALL",
+          },
+        },
+      ],
     })
   );
 

@@ -13,19 +13,6 @@ describe("QueryQueryBuilder", () => {
     });
   });
 
-  it("queryQueryBuilder index works", () => {
-    const data = tsynamoClient
-      .query("myTable")
-      .keyCondition("userId", "=", "123")
-      .filterExpression("someBoolean", "=", true)
-      .orFilterExpression("somethingElse", "BETWEEN", 9, 10)
-      .attributes(["userId"])
-      .index("myIndex")
-      .compile();
-
-    expect(data.input.IndexName).toBe("myIndex");
-  });
-
   it("queryQueryBuilder can be compiled", () => {
     const data = tsynamoClient
       .query("myTable")
