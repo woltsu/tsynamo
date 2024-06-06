@@ -104,6 +104,7 @@ export class QueryCompiler {
       filterExpression: filterExpressionNode,
       keyConditions: keyConditionsNode,
       limit: limitNode,
+      index: indexNode,
       scanIndexForward: scanIndexForwardNode,
       consistentRead: consistentReadNode,
       attributes: attributesNode,
@@ -135,6 +136,7 @@ export class QueryCompiler {
         ? compiledFilterExpression
         : undefined,
       Limit: limitNode?.limit,
+      IndexName: indexNode?.index,
       ExpressionAttributeValues: {
         ...Object.fromEntries(keyConditionAttributeValues),
         ...Object.fromEntries(filterExpressionAttributeValues),

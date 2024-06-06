@@ -1,5 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`QueryQueryBuilder > fails a query with non-existent index 1`] = `[ValidationException: The table does not have the specified index: nonExistentIndex]`;
+
 exports[`QueryQueryBuilder > handles a FilterExpression that takes attributes from cats array 1`] = `
 [
   {
@@ -358,6 +360,77 @@ exports[`QueryQueryBuilder > handles a query with a simple KeyCondition 1`] = `
     },
     "someBoolean": false,
     "somethingElse": 0,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`QueryQueryBuilder > handles a query with index 1`] = `
+[
+  {
+    "dataTimestamp": 333,
+    "someBoolean": false,
+    "somethingElse": 10,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 999,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedString": "key",
+    },
+    "someBoolean": false,
+    "somethingElse": 0,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 996,
+    "nested": {
+      "nestedBoolean": true,
+      "nestedNested": {
+        "nestedNestedBoolean": true,
+      },
+      "nestedString": "llol",
+    },
+    "someBoolean": false,
+    "somethingElse": -9,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+]
+`;
+
+exports[`QueryQueryBuilder > handles a query with limit 1`] = `
+[
+  {
+    "dataTimestamp": 111,
+    "nested": {
+      "nestedBoolean": false,
+      "nestedString": "koy",
+    },
+    "someBoolean": true,
+    "somethingElse": -5,
+    "userId": "123",
+  },
+  {
+    "dataTimestamp": 222,
+    "someBoolean": true,
+    "somethingElse": 2,
     "userId": "123",
   },
 ]

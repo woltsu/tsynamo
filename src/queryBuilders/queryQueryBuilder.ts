@@ -114,6 +114,8 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
 
   limit(value: number): QueryQueryBuilderInterface<DDB, Table, O>;
 
+  index(index: string): QueryQueryBuilderInterface<DDB, Table, O>;
+
   scanIndexForward(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
 
   consistentRead(enabled: boolean): QueryQueryBuilderInterface<DDB, Table, O>;
@@ -260,6 +262,19 @@ export class QueryQueryBuilder<
         limit: {
           kind: "LimitNode",
           limit: value,
+        },
+      },
+    });
+  }
+
+  index(index: string): QueryQueryBuilderInterface<DDB, Table, O> {
+    return new QueryQueryBuilder<DDB, Table, O>({
+      ...this.#props,
+      node: {
+        ...this.#props.node,
+        index: {
+          kind: "IndexNode",
+          index,
         },
       },
     });
