@@ -222,7 +222,7 @@ export interface UpdateItemQueryBuilderInterface<
    */
   remove<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     attribute: Key
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
   /**
    * Adds an ADD action to the UpdateItem statement.
    *
@@ -286,7 +286,7 @@ export interface UpdateItemQueryBuilderInterface<
   >(
     attribute: Key,
     value: StripKeys<GetFromPath<DDB[Table], Key>>
-  ): UpdateItemQueryBuilderInterface<DDB, Table, O>;
+  ): UpdateItemQueryBuilder<DDB, Table, O>;
   /**
    *
    * Use returnValues if you want to get the item attributes as they appear before or after they are successfully updated. For UpdateItem, the valid values are:

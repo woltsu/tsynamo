@@ -165,7 +165,7 @@ export interface DeleteItemQueryBuilderInterface<
    */
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   /**
    * Compiles into an DynamoDB DocumentClient Command.

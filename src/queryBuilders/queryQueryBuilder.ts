@@ -98,7 +98,8 @@ export interface QueryQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
    *  .orFilterExpression("somethingElse", "BETWEEN", 9, 10)
    *  .execute();
    * ```
-   */ orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
+   */
+  orFilterExpression<Key extends ObjectKeyPaths<PickNonKeys<DDB[Table]>>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
   ): QueryQueryBuilderInterface<DDB, Table, O>;
 
