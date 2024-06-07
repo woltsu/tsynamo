@@ -30,7 +30,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
    */
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
-  ): GetQueryBuilderInterface<DDB, Table, O>;
+  ): GetQueryBuilder<DDB, Table, O>;
 
   /**
    * Determines the read consistency model: If set to true, then the operation uses strongly consistent reads; otherwise, the operation uses eventually consistent reads.
@@ -51,7 +51,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
    *  .execute()
    * ```
    */
-  consistentRead(enabled: boolean): GetQueryBuilderInterface<DDB, Table, O>;
+  consistentRead(enabled: boolean): GetQueryBuilder<DDB, Table, O>;
 
   /**
    * List of attributes to get from the table.
@@ -71,7 +71,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
    */
   attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
-  ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>>;
+  ): GetQueryBuilder<DDB, Table, SelectAttributes<DDB[Table], A>>;
 
   /**
    * Compiles into an DynamoDB DocumentClient Command.
@@ -83,7 +83,7 @@ export interface GetQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   execute(): Promise<ExecuteOutput<O> | undefined>;
 }
 
-export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
+export class GetQueryBuilder<DDB, Table extends keyof DDB, O>
   implements GetQueryBuilderInterface<DDB, Table, O>
 {
   readonly #props: GetQueryBuilderProps;
@@ -94,7 +94,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
 
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     keys: Keys
-  ) {
+  ): GetQueryBuilder<DDB, Table, O> {
     return new GetQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -107,7 +107,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
     });
   }
 
-  consistentRead(enabled: boolean): GetQueryBuilderInterface<DDB, Table, O> {
+  consistentRead(enabled: boolean): GetQueryBuilder<DDB, Table, O> {
     return new GetQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -122,7 +122,7 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
 
   attributes<A extends readonly ObjectFullPaths<DDB[Table]>[] & string[]>(
     attributes: A
-  ): GetQueryBuilderInterface<DDB, Table, SelectAttributes<DDB[Table], A>> {
+  ): GetQueryBuilder<DDB, Table, SelectAttributes<DDB[Table], A>> {
     return new GetQueryBuilder({
       ...this.#props,
       node: {
@@ -138,11 +138,16 @@ export class GetQueryBuilder<DDB, Table extends keyof DDB, O extends DDB[Table]>
   compile(): GetCommand {
     return this.#props.queryCompiler.compile(this.#props.node);
   }
+
   execute = async (): Promise<ExecuteOutput<O> | undefined> => {
     const command = this.compile();
     const item = await this.#props.ddbClient.send(command);
     return (item.Item as ExecuteOutput<O>) ?? undefined;
   };
+
+  public get node() {
+    return this.#props.node;
+  }
 }
 
 preventAwait(

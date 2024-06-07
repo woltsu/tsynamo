@@ -24,7 +24,7 @@ import {
 export interface DeleteItemQueryBuilderInterface<
   DDB,
   Table extends keyof DDB,
-  O
+  O extends DDB[Table]
 > {
   /**
    * A condition that must be satisfied in order for a DeleteItem operation to be executed.
@@ -46,31 +46,31 @@ export interface DeleteItemQueryBuilderInterface<
    */
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   /**
    * A {@link conditionExpression} that is concatenated as an OR statement.
@@ -94,31 +94,31 @@ export interface DeleteItemQueryBuilderInterface<
    */
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ComparatorExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeFuncExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBeginsWithExprArg<Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeContainsExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: AttributeBetweenExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: NotExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: BuilderExprArg<DDB, Table, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   // TODO: returnValues should probably just be `returnValues()` without any parameters as ALL_OLD is the only value it takes.
 
@@ -136,7 +136,7 @@ export interface DeleteItemQueryBuilderInterface<
    */
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   /**
    *
@@ -144,7 +144,7 @@ export interface DeleteItemQueryBuilderInterface<
    */
   returnValuesOnConditionCheckFailure(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+  ): DeleteItemQueryBuilder<DDB, Table, O>;
 
   /**
    * An object of attribute names to attribute values, representing the primary key of the item to delete.
@@ -166,6 +166,7 @@ export interface DeleteItemQueryBuilderInterface<
   keys<Keys extends PickPk<DDB[Table]> & PickSkRequired<DDB[Table]>>(
     pk: Keys
   ): DeleteItemQueryBuilderInterface<DDB, Table, O>;
+
   /**
    * Compiles into an DynamoDB DocumentClient Command.
    */
@@ -190,7 +191,7 @@ export class DeleteItemQueryBuilder<
 
   conditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -208,7 +209,7 @@ export class DeleteItemQueryBuilder<
 
   orConditionExpression<Key extends ObjectKeyPaths<DDB[Table]>>(
     ...args: ExprArgs<DDB, Table, O, Key>
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     const eB = new ExpressionBuilder<DDB, Table, O>({
       node: { ...this.#props.node.conditionExpression },
     });
@@ -226,7 +227,7 @@ export class DeleteItemQueryBuilder<
 
   returnValues(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -241,7 +242,7 @@ export class DeleteItemQueryBuilder<
 
   returnValuesOnConditionCheckFailure(
     option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilderInterface<DDB, Table, O> {
+  ): DeleteItemQueryBuilder<DDB, Table, O> {
     return new DeleteItemQueryBuilder<DDB, Table, O>({
       ...this.#props,
       node: {
@@ -272,11 +273,16 @@ export class DeleteItemQueryBuilder<
   compile = (): DeleteCommand => {
     return this.#props.queryCompiler.compile(this.#props.node);
   };
+
   execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
     const deleteCommand = this.compile();
     const data = await this.#props.ddbClient.send(deleteCommand);
     return data.Attributes as any;
   };
+
+  public get node() {
+    return this.#props.node;
+  }
 }
 
 preventAwait(
