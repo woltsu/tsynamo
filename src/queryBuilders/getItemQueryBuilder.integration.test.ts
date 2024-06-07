@@ -33,12 +33,21 @@ describe("GetItemQueryBuilder", () => {
         dataTimestamp: TEST_DATA[0].dataTimestamp,
       })
       .consistentRead(true)
-      .attributes(["somethingElse", "someBoolean"])
+      .attributes(["userId", "somethingElse", "someBoolean"])
       .execute();
+
+    expectTypeOf(data).toEqualTypeOf<
+      | {
+          userId: string;
+          somethingElse?: number;
+          someBoolean?: boolean;
+        }
+      | undefined
+    >();
 
     expect(data?.somethingElse).toBe(TEST_DATA[0].somethingElse);
     expect(data?.someBoolean).toBe(TEST_DATA[0].someBoolean);
-    expect(Object.keys(data!).length).toBe(2);
+    expect(Object.keys(data!).length).toBe(3);
   });
 
   it("handles selecting nested attributes", async () => {
