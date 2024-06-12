@@ -86,4 +86,48 @@ describe("DeleteItemQueryBuilder", () => {
 
     expect(res).toBeDefined();
   });
+  it("doesn't return values if no returnValues is specified or its set to NONE", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1",
+        dataTimestamp: 2,
+      })
+      .execute();
+
+    const res = await tsynamoClient
+      .deleteItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .execute();
+
+    expectTypeOf(res).toBeNever();
+    expect(res).toBeUndefined();
+
+    const res2 = await tsynamoClient
+      .deleteItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .returnValues("NONE")
+      .execute();
+
+    expectTypeOf(res2).toBeNever();
+    expect(res2).toBeUndefined();
+  });
+  it("does return values if returnValues is specified", async () => {
+    await tsynamoClient
+      .putItem("myTable")
+      .item({
+        userId: "1",
+        dataTimestamp: 2,
+      })
+      .execute();
+
+    const res = await tsynamoClient
+      .deleteItem("myTable")
+      .keys({ userId: "1", dataTimestamp: 2 })
+      .returnValues("ALL_OLD")
+      .execute();
+
+    expectTypeOf(res).not.toBeNever();
+    expect(res).toBeDefined();
+  });
 });

@@ -16,11 +16,7 @@ import {
   NotExprArg,
 } from "./expressionBuilder";
 
-export interface PutItemQueryBuilderInterface<
-  DDB,
-  Table extends keyof DDB,
-  O extends DDB[Table]
-> {
+export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   /**
    * A condition that must be satisfied in order for a PutItem operation to be executed.
    *
@@ -129,9 +125,13 @@ export interface PutItemQueryBuilderInterface<
    *
    * The values returned are strongly consistent.
    */
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilder<DDB, Table, O>;
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): PutItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  >;
 
   /**
    * The item that is put into the table.
@@ -155,7 +155,7 @@ export interface PutItemQueryBuilderInterface<
    *   .execute()
    * ```
    */
-  item<Item extends ExecuteOutput<O>>(
+  item<Item extends ExecuteOutput<DDB[Table]>>(
     item: Item
   ): PutItemQueryBuilder<DDB, Table, O>;
 
@@ -163,17 +163,15 @@ export interface PutItemQueryBuilderInterface<
    * Compiles into an DynamoDB DocumentClient Command.
    */
   compile(): PutCommand;
+
   /**
    * Executes the command and returns its output.
    */
-  execute(): Promise<ExecuteOutput<O>[] | undefined>;
+  execute(): Promise<O[] | undefined>;
 }
 
-export class PutItemQueryBuilder<
-  DDB,
-  Table extends keyof DDB,
-  O extends DDB[Table]
-> implements PutItemQueryBuilderInterface<DDB, Table, O>
+export class PutItemQueryBuilder<DDB, Table extends keyof DDB, O>
+  implements PutItemQueryBuilderInterface<DDB, Table, O>
 {
   readonly #props: PutItemQueryBuilderProps;
 
@@ -217,7 +215,7 @@ export class PutItemQueryBuilder<
     });
   }
 
-  item<Item extends ExecuteOutput<O>>(
+  item<Item extends ExecuteOutput<DDB[Table]>>(
     item: Item
   ): PutItemQueryBuilder<DDB, Table, O> {
     return new PutItemQueryBuilder<DDB, Table, O>({
@@ -232,10 +230,14 @@ export class PutItemQueryBuilder<
     });
   }
 
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): PutItemQueryBuilder<DDB, Table, O> {
-    return new PutItemQueryBuilder<DDB, Table, O>({
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): PutItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  > {
+    return new PutItemQueryBuilder({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -251,7 +253,7 @@ export class PutItemQueryBuilder<
     return this.#props.queryCompiler.compile(this.#props.node);
   };
 
-  execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
+  execute = async (): Promise<unknown extends O ? never : O[] | undefined> => {
     const putCommand = this.compile();
     const data = await this.#props.ddbClient.send(putCommand);
     return data.Attributes as any;

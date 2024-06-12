@@ -44,12 +44,33 @@ describe("PutItemQueryBuilder", () => {
     expect(result).toEqual(itemToPut);
   });
 
+  it("doesnt return values without returnValues or when its set to NONE", async () => {
+    let result = await tsynamoClient
+      .putItem("myTable")
+      .item(itemToPut)
+      .execute();
+
+    expectTypeOf(result).toBeNever();
+    expect(result).toBeUndefined();
+
+    let result2 = await tsynamoClient
+      .putItem("myTable")
+      .item(itemToPut)
+      .returnValues("NONE")
+      .execute();
+
+    expectTypeOf(result2).toBeNever();
+    expect(result2).toBeUndefined();
+  });
+
   it("handles ReturnValues option", async () => {
     let result = await tsynamoClient
       .putItem("myTable")
       .item(itemToPut)
       .returnValues("ALL_OLD")
       .execute();
+
+    expectTypeOf(result).not.toBeNever();
 
     expect(result).toBeUndefined();
 

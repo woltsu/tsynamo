@@ -24,7 +24,7 @@ import {
 export interface DeleteItemQueryBuilderInterface<
   DDB,
   Table extends keyof DDB,
-  O extends DDB[Table]
+  O
 > {
   /**
    * A condition that must be satisfied in order for a DeleteItem operation to be executed.
@@ -134,17 +134,25 @@ export interface DeleteItemQueryBuilderInterface<
    *
    * The values returned are strongly consistent.
    */
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, O>;
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  >;
 
   /**
    *
    * Returns the item attributes for a DeleteItem operation that failed a condition check.
    */
-  returnValuesOnConditionCheckFailure(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, O>;
+  returnValuesOnConditionCheckFailure<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  >;
 
   /**
    * An object of attribute names to attribute values, representing the primary key of the item to delete.
@@ -171,17 +179,18 @@ export interface DeleteItemQueryBuilderInterface<
    * Compiles into an DynamoDB DocumentClient Command.
    */
   compile(): DeleteCommand;
+
   /**
    * Executes the command and returns its output.
    */
-  execute(): Promise<ExecuteOutput<O>[] | undefined>;
+  execute(): Promise<O[] | undefined>;
 }
 
-export class DeleteItemQueryBuilder<
-  DDB,
-  Table extends keyof DDB,
-  O extends DDB[Table]
-> implements DeleteItemQueryBuilderInterface<DDB, Table, O>
+/**
+ * @todo support ReturnValuesOnConditionCheckFailure
+ */
+export class DeleteItemQueryBuilder<DDB, Table extends keyof DDB, O>
+  implements DeleteItemQueryBuilderInterface<DDB, Table, O>
 {
   readonly #props: DeleteItemQueryBuilderProps;
 
@@ -225,10 +234,14 @@ export class DeleteItemQueryBuilder<
     });
   }
 
-  returnValues(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, O> {
-    return new DeleteItemQueryBuilder<DDB, Table, O>({
+  returnValues<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  > {
+    return new DeleteItemQueryBuilder({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -240,10 +253,14 @@ export class DeleteItemQueryBuilder<
     });
   }
 
-  returnValuesOnConditionCheckFailure(
-    option: Extract<ReturnValuesOptions, "NONE" | "ALL_OLD">
-  ): DeleteItemQueryBuilder<DDB, Table, O> {
-    return new DeleteItemQueryBuilder<DDB, Table, O>({
+  returnValuesOnConditionCheckFailure<Choice extends "NONE" | "ALL_OLD">(
+    option: Extract<ReturnValuesOptions, Choice>
+  ): DeleteItemQueryBuilder<
+    DDB,
+    Table,
+    "NONE" extends Choice ? O : ExecuteOutput<DDB[Table]>
+  > {
+    return new DeleteItemQueryBuilder({
       ...this.#props,
       node: {
         ...this.#props.node,
@@ -274,7 +291,7 @@ export class DeleteItemQueryBuilder<
     return this.#props.queryCompiler.compile(this.#props.node);
   };
 
-  execute = async (): Promise<ExecuteOutput<O>[] | undefined> => {
+  execute = async (): Promise<unknown extends O ? never : O[] | undefined> => {
     const deleteCommand = this.compile();
     const data = await this.#props.ddbClient.send(deleteCommand);
     return data.Attributes as any;
