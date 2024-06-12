@@ -7,10 +7,9 @@ import type { PartitionKey, SortKey } from "./ddbTypes";
  * @see PartitionKey
  */
 export type PickPk<Table> = {
-  [P in keyof Table as Table[P] extends { _PK: true } ? P : never]: Omit<
-    Table[P],
-    "_PK"
-  >;
+  [P in keyof Table as Table[P] extends { _PK: true }
+    ? P
+    : never]: Table[P] extends PartitionKey<infer U> ? U : never;
 };
 
 /**
@@ -19,10 +18,9 @@ export type PickPk<Table> = {
  * @see SortKey
  */
 export type PickSk<Table> = {
-  [P in keyof Table as Table[P] extends { _SK: true } ? P : never]?: Omit<
-    Table[P],
-    "_SK"
-  >;
+  [P in keyof Table as Table[P] extends { _SK: true }
+    ? P
+    : never]?: Table[P] extends SortKey<infer U> ? U : never;
 };
 
 export type PickAllKeys<Table> = PickPk<Table> & PickSk<Table>;
@@ -39,10 +37,9 @@ export type PickNonKeys<Table> = {
  * @see SortKey
  */
 export type PickSkRequired<Table> = {
-  [P in keyof Table as Table[P] extends { _SK: true } ? P : never]: Omit<
-    Table[P],
-    "_SK"
-  >;
+  [P in keyof Table as Table[P] extends { _SK: true }
+    ? P
+    : never]: Table[P] extends SortKey<infer U> ? U : never;
 };
 
 /**
@@ -56,6 +53,19 @@ export type StripKeys<T> = T extends { _PK: true }
   : T extends { _SK: true }
   ? Omit<T, "_SK">
   : T;
+
+/**
+ * Returns object without keys
+ * @see PartitionKey
+ * @see SortKey
+ */
+export type OmitKeys<Table> = {
+  [P in keyof Table as Table[P] extends { _SK: true }
+    ? never
+    : Table[P] extends { _PK: true }
+    ? never
+    : P]: Table[P];
+};
 
 /**
  * Returns a subset of a table's properties.
@@ -89,7 +99,7 @@ type RecursiveSelectAttributes<Table, Properties> = Properties extends [
 
 export type SelectAttributes<
   Table,
-  Attributes extends ReadonlyArray<string>
+  Attributes extends Array<string>
 > = IntersectionToSingleObject<
   UnionToIntersection<
     RecursiveSelectAttributes<Table, ParsePath<Attributes[number]>>
@@ -119,8 +129,11 @@ export type DeepPartial<T> = {
     : T[P];
 };
 
-export type ExecuteOutput<O> = StripKeys<
-  PickPk<O> & PickSkRequired<O> & DeepPartial<O>
+export type DrainOuterGeneric<T> = [T] extends [unknown] ? T : never;
+export type Simplify<T> = DrainOuterGeneric<{ [K in keyof T]: T[K] } & {}>;
+
+export type ExecuteOutput<O> = Simplify<
+  PickPk<O> & PickSkRequired<O> & DeepPartial<OmitKeys<O>>
 >;
 
 type IntersectionToSingleObject<T> = T extends infer U

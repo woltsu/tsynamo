@@ -1,6 +1,35 @@
-import { SelectAttributes, type ObjectFullPaths } from "./typeHelpers";
+import { PartitionKey, SortKey } from ".";
+import {
+  OmitKeys,
+  PickPk,
+  PickSk,
+  PickSkRequired,
+  SelectAttributes,
+  StripKeys,
+  type ObjectFullPaths,
+} from "./typeHelpers";
 
 describe("typeHelpers typecheck", () => {
+  it("PK and SK util", () => {
+    interface Table {
+      pk: PartitionKey<string>;
+      sk: SortKey<number>;
+      somethingElse: string;
+    }
+
+    type pk = PickPk<Table>;
+    expectTypeOf<pk>().toEqualTypeOf<{ pk: string }>();
+
+    type sk = PickSk<Table>;
+    expectTypeOf<sk>().toEqualTypeOf<{ sk?: number }>();
+
+    type skr = PickSkRequired<Table>;
+    expectTypeOf<skr>().toEqualTypeOf<{ sk: number }>();
+
+    type noKeys = OmitKeys<Table>;
+    expectTypeOf<noKeys>().toEqualTypeOf<{ somethingElse: string }>();
+  });
+
   it("ObjectFullPaths typecheck", () => {
     type empty = ObjectFullPaths<{}>;
     expectTypeOf<empty>().toEqualTypeOf<never>();
