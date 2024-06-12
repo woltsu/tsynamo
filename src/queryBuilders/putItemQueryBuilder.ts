@@ -16,11 +16,7 @@ import {
   NotExprArg,
 } from "./expressionBuilder";
 
-export interface PutItemQueryBuilderInterface<
-  DDB,
-  Table extends keyof DDB,
-  O extends DDB[Table]
-> {
+export interface PutItemQueryBuilderInterface<DDB, Table extends keyof DDB, O> {
   /**
    * A condition that must be satisfied in order for a PutItem operation to be executed.
    *
