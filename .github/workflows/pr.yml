@@ -27,3 +27,6 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Check type and module resolution
+        run: npx @arethetypeswrong/cli --pack
